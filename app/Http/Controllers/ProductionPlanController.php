@@ -10,7 +10,7 @@ class ProductionPlanController extends Controller
     public function index(Request $request)
     {
         // 1. 設定查詢日期 (預設今天，或是網址帶入 ?date=20251226)
-        $targetDate = $request->input('date', '20251226'); 
+        $targetDate = $request->input('date', date('Ymd')); 
 
         // 2. 準備 SQL
         // 使用 HEREDOC 語法 (<<<SQL ... SQL;) 可以直接貼上多行 SQL，不用一直串接字串
