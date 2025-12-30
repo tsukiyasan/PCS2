@@ -69,7 +69,7 @@ ORDER BY
     keikaku.seihin ASC,
     keikaku.choku ASC,
     keikaku.delete_kbn ASC
-    SQL;
+SQL;
 
         // 3. 執行查詢
         // 使用 select 方法，第二個參數是用來替換上面 SQL 中的 :ymd
