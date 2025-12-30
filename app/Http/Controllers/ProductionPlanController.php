@@ -16,70 +16,60 @@ class ProductionPlanController extends Controller
         // 使用 HEREDOC 語法 (<<<SQL ... SQL;) 可以直接貼上多行 SQL，不用一直串接字串
         $sql = <<<SQL
 SELECT
-    keikaku_no,
-    line,
-    tonyu_yotei_ymd,
-    seihin,
-    sunpo_s,
-    sunpo_l,
-    itaatsu,
-    tonyu_su,
-    ryohin_su,
-    choku,
-    keitai_cd,
-    keitai_name,
-    kotei_name1,
-    kotei_name2,
-    kotei_name3,
-    delete_kbn,
-    order_no,
-    upd_date,
-    '' as status
+    keikaku.keikaku_no,
+    keikaku.line,
+    keikaku.tonyu_yotei_ymd,
+    keikaku.seihin,
+    kikaku.sunpo_s,
+    kikaku.sunpo_l,
+    kikaku.itaatsu,
+    keikaku.keikaku_su AS tonyu_su,
+    keikaku.moku_ryohin_su AS ryohin_su,
+    keikaku.choku,
+    keikaku.keitai_cd,
+    keitai.keitai_ryaku_lang4 AS keitai_name,
+    kotei1.kotei_name_lang4 AS kotei_name1,
+    kotei2.kotei_name_lang4 AS kotei_name2,
+    kotei3.kotei_name_lang4 AS kotei_name3,
+    keikaku.delete_kbn,
+    keikaku.order_no,
+    keikaku.upd_date,
+    '' AS status
 FROM
-    (
-        SELECT
-            keikaku.keikaku_no keikaku_no,
-            keikaku.line line,
-            keikaku.tonyu_yotei_ymd tonyu_yotei_ymd,
-            keikaku.seihin seihin,
-            kikaku.sunpo_s sunpo_s,
-            kikaku.sunpo_l sunpo_l,
-            kikaku.itaatsu itaatsu,
-            keikaku.keikaku_su tonyu_su,
-            keikaku.moku_ryohin_su ryohin_su,
-            keikaku.choku choku,
-            keikaku.keitai_cd keitai_cd,
-            keitai.keitai_ryaku_lang4 as keitai_name,
-            kotei1.kotei_name_lang4 as kotei_name1,
-            kotei2.kotei_name_lang4 as kotei_name2,
-            kotei3.kotei_name_lang4 as kotei_name3,
-            keikaku.delete_kbn delete_kbn,
-            keikaku.order_no order_no,
-            keikaku.upd_date upd_date
-        FROM
-            nh_keikaku_no keikaku,
-            nh_kikakusho_mst kikaku,
-            nh_konpokeitai_mst keitai,
-            nh_kotei_mst kotei1,
-            nh_kotei_mst kotei2,
-            nh_kotei_mst kotei3
-        WHERE
-            keikaku.country_cd = 'TNHT'
-            AND keikaku.seihin = kikaku.seihin(+)
-            AND keikaku.keitai_cd = keitai.keitai_cd(+)
-            AND keikaku.kotei1 = kotei1.kotei_cd(+)
-            AND keikaku.kotei2 = kotei2.kotei_cd(+)
-            AND keikaku.kotei3 = kotei3.kotei_cd(+)
-            -- ⚠️ 這裡改成參數綁定，不要寫死日期
-            AND keikaku.tonyu_yotei_ymd = :ymd
-    )
+    -- 1. 主表 (生產計劃)
+    NHT.nh_keikaku_no keikaku
+
+    -- 2. 關聯產品規格 (取代 kikaku.seihin(+))
+    LEFT JOIN NHT.nh_kikakusho_mst kikaku 
+        ON keikaku.seihin = kikaku.seihin
+
+    -- 3. 關聯包裝形態 (取代 keitai.keitai_cd(+))
+    LEFT JOIN NHT.nh_konpokeitai_mst keitai 
+        ON keikaku.keitai_cd = keitai.keitai_cd
+
+    -- 4. 關聯工程 1 (取代 kotei1.kotei_cd(+))
+    LEFT JOIN NHT.nh_kotei_mst kotei1 
+        ON keikaku.kotei1 = kotei1.kotei_cd
+
+    -- 5. 關聯工程 2 (取代 kotei2.kotei_cd(+))
+    LEFT JOIN NHT.nh_kotei_mst kotei2 
+        ON keikaku.kotei2 = kotei2.kotei_cd
+
+    -- 6. 關聯工程 3 (取代 kotei3.kotei_cd(+))
+    LEFT JOIN NHT.nh_kotei_mst kotei3 
+        ON keikaku.kotei3 = kotei3.kotei_cd
+
+WHERE
+    keikaku.country_cd = 'TNHT'
+    AND keikaku.tonyu_yotei_ymd = :ymd
+
 ORDER BY
-    keikaku_no ASC,
-    line ASC,
-    seihin ASC,
-    choku ASC,
-    delete_kbn ASC
-SQL;
+    keikaku.keikaku_no ASC,
+    keikaku.line ASC,
+    keikaku.seihin ASC,
+    keikaku.choku ASC,
+    keikaku.delete_kbn ASC
+    SQL;
 
         // 3. 執行查詢
         // 使用 select 方法，第二個參數是用來替換上面 SQL 中的 :ymd
