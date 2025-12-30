@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB; // ⚠️ 記得引入 DB
+use Illuminate\Support\Facades\DB; // 引入 DB
 
 class ProductionPlanController extends Controller
 {
