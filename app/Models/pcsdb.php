@@ -11,7 +11,7 @@ class pcsdb extends Model
 
     // 1. 指定連線 (對應 config/database.php 裡的名稱)
     protected $connection = 'oracle';
-
+    
     // 2. 指定資料表名稱 (Oracle 通常是大寫)
     // 如果資料表在不同 Schema，要寫成 'SCHEMA名稱.資料表'，例如 'STARK.HR_CARD_SOURCE'
     //protected $table = 'HR_CARD_SOURCE';
