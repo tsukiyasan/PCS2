@@ -61,19 +61,22 @@ class ProductionPlanController extends Controller
             return $q->where('keikaku.line', $filters['line']);
         });
 
-        // 篩選：計劃編號 (模糊比對)
         $query->when(!empty($filters['keikaku_no']), function ($q) use ($filters) {
-            return $q->whereRaw("UPPER(keikaku.keikaku_no)", 'like', "%{$filters['keikaku_no']}%");
+            $term = strtoupper($filters['keikaku_no']); // PHP 端先轉大寫
+            // 寫法說明：where(欄位, 運算子, 值)
+            return $q->where(DB::raw('UPPER(keikaku.keikaku_no)'), 'like', "%{$term}%");
         });
 
-        // 篩選：製品 (模糊比對)
+        // 篩選：製品 (修正)
         $query->when(!empty($filters['seihin']), function ($q) use ($filters) {
-            return $q->whereRaw("UPPER(keikaku.seihin)", 'like', "%{$filters['seihin']}%");
+            $term = strtoupper($filters['seihin']);
+            return $q->where(DB::raw('UPPER(keikaku.seihin)'), 'like', "%{$term}%");
         });
 
-        // 篩選：訂單號 (模糊比對)
+        // 篩選：訂單號 (修正)
         $query->when(!empty($filters['order_no']), function ($q) use ($filters) {
-            return $q->whereRaw("UPPER(keikaku.order_no)", 'like', "%{$filters['order_no']}%");
+            $term = strtoupper($filters['order_no']);
+            return $q->where(DB::raw('UPPER(keikaku.order_no)'), 'like', "%{$term}%");
         });
 
         // 6. 排序與分頁
