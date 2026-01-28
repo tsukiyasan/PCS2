@@ -65,3 +65,4 @@ public function index(Request $request)
         'filterOrder' => $filterOrder
     ]);
 }
+}
