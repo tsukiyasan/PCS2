@@ -85,7 +85,7 @@ class ProductionPlanController extends Controller
             ->orderBy('keikaku.tonyu_yotei_ymd')
             ->orderBy('keikaku.line')
             ->orderBy('keikaku.keikaku_no')
-            ->paginate(20)
+            ->paginate(15)
             ->appends($request->all());
 
         // 7. 回傳 View
