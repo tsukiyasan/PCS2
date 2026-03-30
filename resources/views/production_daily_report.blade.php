@@ -89,9 +89,9 @@
                                    class="filter-input" placeholder="搜尋製品...">
                         </td>
 
-                        <td class="p-2">總投入數: {{ number_format($plans->sum('tonyu_su')) }}</td>
-                        <td class="p-2">總良品數: {{ number_format($plans->sum('tonyu_su')) }}</td>
-                        <td class="p-2">總振替數: {{ number_format($plans->sum('tonyu_su')) }}</td>
+                        <td class="p-2 text-right">總投入數: {{ number_format($plans->sum('tonyu_su')) }}</td>
+                        <td class="p-2 text-right">總良品數: {{ number_format($plans->sum('tonyu_su')) }}</td>
+                        <td class="p-2 text-right">總振替數: {{ number_format($plans->sum('tonyu_su')) }}</td>
 
                         <td class="p-2">
                             <input type="text" name="filters[order_no]" value="{{ $filters['order_no'] ?? '' }}" 
