@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductionPlanController;
+use App\Http\Controllers\DailyReportController;
 Route::get('/', function () {
     return view('welcome');
 });
