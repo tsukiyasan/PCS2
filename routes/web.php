@@ -6,3 +6,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/plans', [ProductionPlanController::class, 'index']);
+Route::get('/report', [DailyReportController::class, 'index']);
