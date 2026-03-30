@@ -89,7 +89,7 @@ class DailyReportController extends Controller
             ->appends($request->all());
 
         // 7. 回傳 View
-        return view('production_daily', [
+        return view('production_daily_report', [
             'plans'     => $plans,
             'lines'     => $lines,
             'dateStart' => $dateStartInput, // 回傳給前端顯示用 (Y-m-d)
