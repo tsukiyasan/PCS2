@@ -149,11 +149,11 @@
 
     </form> </div>
 <script>
-    // 使用 Laravel 的 @json 指令將 PHP 物件轉換為 JavaScript 陣列
-    const phpData = @json($plans->items());
+    // 使用 {!! !!} 配合 json_encode 並加上 JSON_UNESCAPED_UNICODE 防止中文亂碼
+    const phpData = {!! json_encode($plans->items(), JSON_UNESCAPED_UNICODE) !!};
     
-    console.log("--- 生產計畫查詢資料庫結果 ---");
-    console.table(phpData); // 使用 console.table 可以直接看表格形式，非常方便
+    console.log("--- 查詢結果除錯 ---");
+    console.table(phpData);
     console.log(phpData);
 </script>
 </body>
