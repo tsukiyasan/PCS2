@@ -25,7 +25,18 @@ class ProductionPlanController extends Controller
             ->distinct()
             ->pluck('line');
 
-        // 3. 主查詢：完全放棄 JOIN，改用「selectRaw 加上 NVL」
+        // 3. 建立子查詢 (完全還原你成功的 SQL，並拿掉日期限制以防實績落後)
+        $subQuery = DB::connection('oracle')
+            ->table('NHT.NH_SETSUDAN_MENTORI as nh_sm')
+            ->select([
+                'nh_sm.keikaku_no',
+                DB::raw('SUM(nh_sm.setsudan_su) as total_setsudan')
+            ])
+            ->where('nh_sm.country_cd', 'TNHT')
+            // 拿掉日期限制，只要編號一樣，所有實績通通算進來
+            ->groupBy('nh_sm.keikaku_no');
+
+        // 4. 主查詢
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
             ->select([
@@ -33,33 +44,30 @@ class ProductionPlanController extends Controller
                 'keikaku.line',
                 'keikaku.tonyu_yotei_ymd',
                 'keikaku.seihin',
-                'keikaku.keikaku_su AS tonyu_su',
-                'keikaku.moku_ryohin_su AS ryohin_su',
+                'keikaku.keikaku_su as tonyu_su',
+                'keikaku.moku_ryohin_su as ryohin_su',
                 'keikaku.choku',
                 'keikaku.order_no',
                 'keikaku.keitai_cd',
-                'keitai.keitai_ryaku_lang4 AS keitai_name',
+                'keitai.keitai_ryaku_lang4 as keitai_name',
                 'kikaku.sunpo_s',
                 'kikaku.sunpo_l',
                 'kikaku.itaatsu',
+                // ★★★ 關鍵：強制 NVL 補 0，並指定與 JSON 一致的小寫別名 ★★★
+                DB::raw('NVL(sm_sum.total_setsudan, 0) as total_setsudan') 
             ])
-            // ★★★ 終極殺招：NVL() 強制補 0，且不卡 SAGYO_YMD 日期 ★★★
-            // 只要計畫編號對得上，不管哪天切的實績通通加總回來
-            ->selectRaw("NVL((
-                SELECT SUM(nh_sm.SETSUDAN_SU) 
-                FROM NHT.NH_SETSUDAN_MENTORI nh_sm 
-                WHERE TRIM(nh_sm.KEIKAKU_NO) = TRIM(keikaku.keikaku_no) 
-                  AND nh_sm.COUNTRY_CD = 'TNHT'
-            ), 0) AS TOTAL_SETSUDAN")
-            
-            // 僅保留基本主檔的 Join
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
             ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
+            
+            // 還原你手動 SQL 的精確 Join 條件 (不使用 TRIM)
+            ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
+                $join->on('keikaku.keikaku_no', '=', 'sm_sum.keikaku_no');
+            })
             
             ->where('keikaku.country_cd', 'TNHT')
             ->whereBetween('keikaku.tonyu_yotei_ymd', [$dbDateStart, $dbDateEnd]);
 
-        // 4. 動態篩選
+        // 5. 動態篩選
         $query->when(!empty($filters['line']), function ($q) use ($filters) {
             return $q->where('keikaku.line', $filters['line']);
         });
@@ -79,7 +87,7 @@ class ProductionPlanController extends Controller
             return $q->where(DB::raw('UPPER(keikaku.order_no)'), 'like', "%{$term}%");
         });
 
-        // 5. 排序與分頁
+        // 6. 排序與分頁
         $plans = $query
             ->orderBy('keikaku.tonyu_yotei_ymd', 'ASC')
             ->orderBy('keikaku.line', 'ASC')
