@@ -67,10 +67,10 @@ class ProductionPlanController extends Controller
             ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
             
             
-            //-- 6. 修改 leftJoinSub 關聯條件 --
+            // -- 修改 leftJoinSub 關聯條件進行測試 --
             ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
-                // 因為子查詢已經 TRIM 過了，主表也要 TRIM 才能對上
-                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', 'sm_sum.JOIN_KEY');
+                // 測試：改用 LIKE 比對，看是不是有隱藏字元
+                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), 'LIKE', DB::raw("sm_sum.JOIN_KEY || '%'"));
             });
             
             // 基本條件
@@ -101,11 +101,7 @@ class ProductionPlanController extends Controller
             $term = strtoupper($filters['order_no']);
             return $q->where(DB::raw('UPPER(keikaku.order_no)'), 'like', "%{$term}%");
         });
-$test = DB::connection('oracle')
-          ->table('NHT.NH_SETSUDAN_MENTORI')
-          ->where('KEIKAKU_NO', 'LIKE', '%55019299%')
-          ->get();
-dd($test); // 如果這裡噴出空陣列，代表這個連線帳號在實績表真的完全看不到 T5 的資料
+
         // 6. 排序與分頁
         // ->appends($request->all()) 是關鍵！讓換頁時，篩選條件不會消失
         $plans = $query
@@ -115,12 +111,12 @@ dd($test); // 如果這裡噴出空陣列，代表這個連線帳號在實績表
             ->paginate(15)
             ->appends($request->all());
         // 7. 回傳 View
-        /*return view('production_plan', [
+        return view('production_plan', [
             'plans'     => $plans,
             'lines'     => $lines,
             'dateStart' => $dateStartInput, // 回傳給前端顯示用 (Y-m-d)
             'dateEnd'   => $dateEndInput,
             'filters'   => $filters,    // 把使用者輸入的篩選字再傳回去，填入 input value
-        ]);*/
+        ]);
     }
 }
