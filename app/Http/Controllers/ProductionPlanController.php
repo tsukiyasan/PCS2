@@ -60,7 +60,7 @@ class ProductionPlanController extends Controller
                 'kikaku.sunpo_s',
                 'kikaku.sunpo_l',
                 'kikaku.itaatsu',
-                'sm_sum.TOTAL_SETSUDAN' // 從子查詢帶入的欄位
+                'sm_sum.TOTAL_SETSUDAN as TOTAL_SETSUDAN' // 從子查詢帶入的欄位
             ])
             // Join 關聯表
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
