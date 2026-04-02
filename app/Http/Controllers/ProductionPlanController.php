@@ -115,12 +115,12 @@ dd($test); // 如果這裡噴出空陣列，代表這個連線帳號在實績表
             ->paginate(15)
             ->appends($request->all());
         // 7. 回傳 View
-        return view('production_plan', [
+        /*return view('production_plan', [
             'plans'     => $plans,
             'lines'     => $lines,
             'dateStart' => $dateStartInput, // 回傳給前端顯示用 (Y-m-d)
             'dateEnd'   => $dateEndInput,
             'filters'   => $filters,    // 把使用者輸入的篩選字再傳回去，填入 input value
-        ]);
+        ]);*/
     }
 }
