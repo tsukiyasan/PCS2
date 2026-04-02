@@ -55,6 +55,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">日期</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">計畫編號</th>
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">線別</th>
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">製品</th>
                         <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">尺寸(S/L)</th>
@@ -68,6 +69,11 @@
                     
                     <tr class="bg-gray-100">
                         <td class="p-2"></td> 
+
+                        <td class="p-2">
+                            <input type="text" name="filters[keikaku_no]" value="{{ $filters['keikaku_no'] ?? '' }}" 
+                                   class="filter-input" placeholder="搜尋編號...">
+                        </td>
 
                         <td class="p-2">
                             <select name="filters[line]" class="filter-input bg-white cursor-pointer" onchange="document.getElementById('searchForm').submit()">
@@ -84,7 +90,6 @@
                             <input type="text" name="filters[seihin]" value="{{ $filters['seihin'] ?? '' }}" 
                                    class="filter-input" placeholder="搜尋製品...">
                         </td>
-                        <td class="p-2"></td>
 
                         <td class="p-2 text-right">總投入數: {{ number_format($plans->sum('tonyu_su')) }}</td>
                         <td class="p-2 text-right">總良品數: {{ number_format($plans->sum('tonyu_su')) }}</td>
