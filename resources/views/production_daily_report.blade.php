@@ -125,9 +125,9 @@
                                 {{ number_format($row->tonyu_su) }}
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $row->keitai_name }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $row->itaatsu }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ number_format($row->itaatsu) }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $row->order_no }}</td>
-                        </tr>
+                        </tr>l
                     @empty
                         <tr>
                             <td colspan="8" class="px-6 py-10 text-center text-gray-500 bg-gray-50">
