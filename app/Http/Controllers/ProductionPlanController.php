@@ -30,16 +30,17 @@ class ProductionPlanController extends Controller
 
         // ProductionPlanController.php 內的子查詢部分
 // 1. 子查詢：先在裡面把 TRIM 做掉，並給予絕對大寫的別名
-$subQuery = DB::connection('oracle')
-    ->table('NHT.NH_SETSUDAN_MENTORI')
-    ->select([
-        DB::raw('TRIM(KEIKAKU_NO) as JOIN_KEY'), // 這是關鍵，先 TRIM 好
-        DB::raw('SUM(SETSUDAN_SU) as TOTAL_SETSUDAN')
-    ])
-    ->where('COUNTRY_CD', 'TNHT')
-    ->whereBetween('SAGYO_YMD', [$dbDateStart, $dbDateEnd]) 
-    ->groupBy(DB::raw('TRIM(KEIKAKU_NO)')); // 依照 TRIM 後的編號分組
 
+        $subQuery = DB::connection('oracle')
+            ->table('NHT.NH_SETSUDAN_MENTORI')
+            ->select([
+                DB::raw('TRIM(KEIKAKU_NO) as JOIN_KEY'),
+                DB::raw('SUM(SETSUDAN_SU) as TOTAL_SETSUDAN')
+            ])
+            ->where('COUNTRY_CD', 'TNHT')
+            // --- 暫時註解掉這行日期限制，確認是否為提前或延後生產造成無資料 ---
+            // ->whereBetween('SAGYO_YMD', [$dbDateStart, $dbDateEnd]) 
+            ->groupBy(DB::raw('TRIM(KEIKAKU_NO)'));
 
 
         // 4. 開始建構主查詢
