@@ -27,7 +27,7 @@
 <div class="max-w-[98%] mx-auto">
     
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-gray-700">未定查詢</h1>
+        <h1 class="text-2xl font-bold text-gray-700">生產計劃查詢</h1>
     </div>
 
     <form method="GET" action="" id="searchForm">
@@ -62,6 +62,7 @@
                         <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">良品數</th>
                         <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">振替數</th>
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">形態</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">厚度</th>
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">訂單號</th>
                     </tr>
                     
@@ -92,7 +93,9 @@
                         <td class="p-2 text-right">總投入數: {{ number_format($plans->sum('tonyu_su')) }}</td>
                         <td class="p-2 text-right">總良品數: {{ number_format($plans->sum('tonyu_su')) }}</td>
                         <td class="p-2 text-right">總振替數: {{ number_format($plans->sum('tonyu_su')) }}</td>
-
+                        <td class="p-2 text-right"></td>
+                        <td class="p-2 text-right"></td>
+                        
                         <td class="p-2">
                             <input type="text" name="filters[order_no]" value="{{ $filters['order_no'] ?? '' }}" 
                                    class="filter-input" placeholder="搜尋訂單...">
@@ -119,6 +122,7 @@
                                 {{ number_format($row->tonyu_su) }}
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $row->keitai_name }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $row->itaatsu }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $row->order_no }}</td>
                         </tr>
                     @empty
