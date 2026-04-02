@@ -25,7 +25,7 @@ class ProductionPlanController extends Controller
             ->distinct()
             ->pluck('line');
 
-        // 3. 建構查詢：直接使用 DB::raw 注入原生 SQL 的 Left Join 結構
+        // 3. 主查詢：完全放棄 JOIN 實績表，改用「selectRaw 關聯子查詢」
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
             ->select([
@@ -42,27 +42,20 @@ class ProductionPlanController extends Controller
                 'kikaku.sunpo_s',
                 'kikaku.sunpo_l',
                 'kikaku.itaatsu',
-                'sm_sum.TOTAL_SETSUDAN' // 引用子查詢欄位
             ])
+            // ★★★ 終極殺招：直接在 SELECT 階段向 Oracle 要資料 ★★★
+            // 這種寫法會強迫 Oracle 直接計算出 TOTAL_SETSUDAN 欄位，Laravel PDO 只能乖乖接收
+            ->selectRaw("(
+                SELECT SUM(nh_sm.SETSUDAN_SU) 
+                FROM NHT.NH_SETSUDAN_MENTORI nh_sm 
+                WHERE TRIM(nh_sm.KEIKAKU_NO) = TRIM(keikaku.keikaku_no) 
+                  AND nh_sm.COUNTRY_CD = 'TNHT'
+                  AND nh_sm.SAGYO_YMD BETWEEN ? AND ?
+            ) AS TOTAL_SETSUDAN", [$dbDateStart, $dbDateEnd])
+            
+            // 僅保留基本主檔的 Join
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
             ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
-            
-            // --- 核心修正：原生 SQL 注入，確保與資料庫工具跑出的語法一致 ---
-            ->Join(DB::raw("(
-                SELECT 
-                    nh_sm.KEIKAKU_NO, 
-                    SUM(nh_sm.SETSUDAN_SU) AS TOTAL_SETSUDAN
-                FROM 
-                    NHT.NH_SETSUDAN_MENTORI nh_sm
-                WHERE 
-                    nh_sm.COUNTRY_CD = 'TNHT' 
-                    AND nh_sm.SAGYO_YMD BETWEEN '$dbDateStart' AND '$dbDateEnd'
-                GROUP BY 
-                    nh_sm.KEIKAKU_NO
-            ) sm_sum"), function($join) {
-                // 使用 TRIM 處理 Oracle VARCHAR2 結尾可能存在的空白
-                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', DB::raw('TRIM(sm_sum.KEIKAKU_NO)'));
-            })
             
             ->where('keikaku.country_cd', 'TNHT')
             ->whereBetween('keikaku.tonyu_yotei_ymd', [$dbDateStart, $dbDateEnd]);
@@ -80,6 +73,11 @@ class ProductionPlanController extends Controller
         $query->when(!empty($filters['seihin']), function ($q) use ($filters) {
             $term = strtoupper(trim($filters['seihin']));
             return $q->where(DB::raw('UPPER(keikaku.seihin)'), 'like', "%{$term}%");
+        });
+
+        $query->when(!empty($filters['order_no']), function ($q) use ($filters) {
+            $term = strtoupper(trim($filters['order_no']));
+            return $q->where(DB::raw('UPPER(keikaku.order_no)'), 'like', "%{$term}%");
         });
 
         // 5. 排序與分頁
