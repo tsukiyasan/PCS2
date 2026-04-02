@@ -28,6 +28,16 @@ class ProductionPlanController extends Controller
             ->distinct() // 去除重複
             ->pluck('line'); // 只取 line 欄位轉成陣列
 
+        $subQuery = DB::table('NHT.NH_SETSUDAN_MENTORI as nh_sm')
+                    ->select([
+                        'nh_sm.KEIKAKU_NO',
+                        'nh_sm.LINE_CD',
+                        'nh_sm.SEIHIN',
+                        DB::raw('SUM(nh_sm.SETSUDAN_SU) as TOTAL_SETSUDAN')
+                    ])
+                    ->where('nh_sm.COUNTRY_CD', 'TNHT')
+                    ->where('nh_sm.SAGYO_YMD', '20260330')
+                    ->groupBy('nh_sm.KEIKAKU_NO', 'nh_sm.LINE_CD', 'nh_sm.SEIHIN');
         // 4. 開始建構主查詢
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
@@ -44,11 +54,18 @@ class ProductionPlanController extends Controller
                 'keitai.keitai_ryaku_lang4 as keitai_name',
                 'kikaku.sunpo_s',
                 'kikaku.sunpo_l',
-                'kikaku.itaatsu'
+                'kikaku.itaatsu',
+                'sm_sum.TOTAL_SETSUDAN'
             ])
             // Join 關聯表
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
             ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
+            
+            
+            //-- 6. 使用 leftJoinSub 將子查詢加入，並設定別名為 'sm_sum' --
+            ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
+                $join->on('keikaku.keikaku_no', '=', 'sm_sum.KEIKAKU_NO');
+            });
             
             // 基本條件
             ->where('keikaku.country_cd', 'TNHT')
