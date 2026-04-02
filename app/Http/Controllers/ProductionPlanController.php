@@ -28,18 +28,19 @@ class ProductionPlanController extends Controller
             ->distinct() // 去除重複
             ->pluck('line'); // 只取 line 欄位轉成陣列
 
+        // ProductionPlanController.php 內的子查詢部分
         $subQuery = DB::connection('oracle')
             ->table('NHT.NH_SETSUDAN_MENTORI as nh_sm')
             ->select([
-                'nh_sm.keikaku_no',
+                'nh_sm.keikaku_no as JOIN_KEIKAKU_NO', // 明確大寫別名
                 'nh_sm.line_cd',
                 'nh_sm.seihin',
-                DB::raw('SUM(nh_sm.SETSUDAN_SU) as TOTAL_SETSUDAN')
+                DB::raw('SUM(nh_sm.SETSUDAN_SU) as TOTAL_SETSUDAN') // 確保大寫
             ])
             ->where('nh_sm.COUNTRY_CD', 'TNHT')
-            // 修正：同步使用主查詢的日期區間，確保實績能對上計畫
             ->whereBetween('nh_sm.SAGYO_YMD', [$dbDateStart, $dbDateEnd]) 
             ->groupBy('nh_sm.keikaku_no', 'nh_sm.line_cd', 'nh_sm.seihin');
+
         // 4. 開始建構主查詢
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
@@ -66,9 +67,7 @@ class ProductionPlanController extends Controller
             
             //-- 6. 修改 leftJoinSub 關聯條件 --
             ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
-                // 1. 使用 DB::raw 加上 TRIM 強制去除兩邊可能的空白
-                // 2. 暫時移除 line 的比對，先確認計畫編號能對上
-                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', DB::raw('TRIM(sm_sum.KEIKAKU_NO)'));
+                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', DB::raw('TRIM(sm_sum.JOIN_KEIKAKU_NO)'));
             });
             
             // 基本條件
@@ -108,9 +107,6 @@ class ProductionPlanController extends Controller
             ->orderBy('keikaku.keikaku_no')
             ->paginate(15)
             ->appends($request->all());
-// 找出 T5 且計畫編號為 55019299 的那一筆，看看裡面到底有什麼
-$checkData = collect($plans->items())->firstWhere('keikaku_no', '55019299');
-dd($checkData);
         // 7. 回傳 View
         return view('production_plan', [
             'plans'     => $plans,
