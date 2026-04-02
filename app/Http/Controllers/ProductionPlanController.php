@@ -101,7 +101,11 @@ class ProductionPlanController extends Controller
             $term = strtoupper($filters['order_no']);
             return $q->where(DB::raw('UPPER(keikaku.order_no)'), 'like', "%{$term}%");
         });
-
+$test = DB::connection('oracle')
+          ->table('NHT.NH_SETSUDAN_MENTORI')
+          ->where('KEIKAKU_NO', 'LIKE', '%55019299%')
+          ->get();
+dd($test); // 如果這裡噴出空陣列，代表這個連線帳號在實績表真的完全看不到 T5 的資料
         // 6. 排序與分頁
         // ->appends($request->all()) 是關鍵！讓換頁時，篩選條件不會消失
         $plans = $query
