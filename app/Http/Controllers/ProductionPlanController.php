@@ -9,7 +9,7 @@ class ProductionPlanController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. 處理日期與篩選
+        // 1. 處理日期
         $dateStartInput = $request->input('date_start', date('Y-m-d'));
         $dateEndInput   = $request->input('date_end', $dateStartInput);
         $dbDateStart = str_replace('-', '', $dateStartInput);
@@ -24,7 +24,7 @@ class ProductionPlanController extends Controller
             ->distinct()
             ->pluck('line');
 
-        // 3. 主查詢：【完全不要 Join 實績表】，只撈計畫與主檔
+        // 3. 主查詢：【純粹查詢計畫與主檔，絕對不要 Join 實績表】
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
             ->select([
@@ -59,12 +59,8 @@ class ProductionPlanController extends Controller
             $term = strtoupper(trim($filters['seihin']));
             return $q->where(DB::raw('UPPER(keikaku.seihin)'), 'like', "%{$term}%");
         });
-        $query->when(!empty($filters['order_no']), function ($q) use ($filters) {
-            $term = strtoupper(trim($filters['order_no']));
-            return $q->where(DB::raw('UPPER(keikaku.order_no)'), 'like', "%{$term}%");
-        });
 
-        // 4. 執行分頁 (讓 Yajra 安全地去解析最單純的 SQL)
+        // 4. 執行分頁
         $plans = $query
             ->orderBy('keikaku.tonyu_yotei_ymd', 'ASC')
             ->orderBy('keikaku.line', 'ASC')
@@ -72,15 +68,24 @@ class ProductionPlanController extends Controller
             ->paginate(15)
             ->appends($request->all());
 
-        // ★★★ 5. 破局點：在 PHP 端組合實績資料 ★★★
-        // 抓出「當前這 15 筆」計畫的編號
-        $keikakuNos = collect($plans->items())->pluck('keikaku_no')->map(function($k) {
-            return trim($k);
-        })->filter()->toArray();
+        // ★★★ 5. 終極 PHP 端資料合併 (防禦所有型態問題) ★★★
+        $keikakuNos = [];
+        $items = $plans->items();
+        
+        // 抓出當頁所有的計畫編號 (兼容陣列與物件)
+        foreach ($items as $item) {
+            $k = is_object($item) ? $item->keikaku_no : $item['keikaku_no'];
+            if (!empty($k)) {
+                $keikakuNos[] = trim($k);
+            }
+        }
+        $keikakuNos = array_unique($keikakuNos);
 
+        // 準備實績字典
+        $actualSums = [];
         if (!empty($keikakuNos)) {
-            // 另外下一次輕量級的查詢，只抓這 15 筆的實績
-            $actualSums = DB::connection('oracle')
+            // 用 IN 語法一次把實績撈回來
+            $sums = DB::connection('oracle')
                 ->table('NHT.NH_SETSUDAN_MENTORI')
                 ->select([
                     DB::raw('TRIM(KEIKAKU_NO) as keikaku_no'),
@@ -88,26 +93,32 @@ class ProductionPlanController extends Controller
                 ])
                 ->where('COUNTRY_CD', 'TNHT')
                 ->whereIn(DB::raw('TRIM(KEIKAKU_NO)'), $keikakuNos)
-                // 不限制 SAGYO_YMD，確保抓到所有跨天實績
                 ->groupBy(DB::raw('TRIM(KEIKAKU_NO)'))
-                ->get()
-                ->keyBy('keikaku_no'); // 轉成以編號為 Key 的 Collection
+                ->get();
 
-            // 將實績塞回分頁結果中
-            foreach ($plans->items() as $plan) {
-                $kNo = trim($plan->keikaku_no);
-                if ($actualSums->has($kNo)) {
-                    $plan->total_setsudan = $actualSums[$kNo]->total_setsudan;
-                } else {
-                    $plan->total_setsudan = 0; // 沒實績就給 0
-                }
-            }
-        } else {
-            // 防呆處理，如果完全沒資料
-            foreach ($plans->items() as $plan) {
-                $plan->total_setsudan = 0;
+            // 寫入字典
+            foreach ($sums as $sum) {
+                $k = is_object($sum) ? trim($sum->keikaku_no) : trim($sum['keikaku_no']);
+                $v = is_object($sum) ? $sum->total_setsudan : $sum['total_setsudan'];
+                $actualSums[$k] = $v;
             }
         }
+
+        // 把實績強硬塞回分頁資料中
+        foreach ($items as &$plan) {
+            $k = is_object($plan) ? trim($plan->keikaku_no) : trim($plan['keikaku_no']);
+            $val = isset($actualSums[$k]) ? $actualSums[$k] : 0;
+
+            // 無論底層是 Object 還是 Array，通通塞進去！
+            if (is_object($plan)) {
+                $plan->total_setsudan = $val;
+            } else {
+                $plan['total_setsudan'] = $val;
+            }
+        }
+
+        // 為了確保變更生效，我們如果連這樣 JSON 都沒有，就直接中斷印出！
+        // dd($items); // <--- 如果等等畫面還是沒資料，請把這行最前面的雙斜線拿掉，看網頁印出什麼！
 
         // 6. 回傳視圖
         return view('production_plan', [
