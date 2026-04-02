@@ -116,7 +116,7 @@
                                 {{ $row->sunpo_s }} / {{ $row->sunpo_l }}
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
-                                {{ number_format($row->TOTAL_SETSUDAN) }}
+                                {{ number_format($row->TOTAL_SETSUDAN ?? 0) }}
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
                                 {{ number_format($row->tonyu_su) }}
