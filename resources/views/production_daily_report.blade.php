@@ -70,11 +70,6 @@
                         <td class="p-2"></td> 
 
                         <td class="p-2">
-                            <input type="text" name="filters[keikaku_no]" value="{{ $filters['keikaku_no'] ?? '' }}" 
-                                   class="filter-input" placeholder="搜尋編號...">
-                        </td>
-
-                        <td class="p-2">
                             <select name="filters[line]" class="filter-input bg-white cursor-pointer" onchange="document.getElementById('searchForm').submit()">
                                 <option value="">全部</option>
                                 @foreach($lines as $lineOption)
@@ -89,6 +84,7 @@
                             <input type="text" name="filters[seihin]" value="{{ $filters['seihin'] ?? '' }}" 
                                    class="filter-input" placeholder="搜尋製品...">
                         </td>
+                        <td class="p-2"></td>
 
                         <td class="p-2 text-right">總投入數: {{ number_format($plans->sum('tonyu_su')) }}</td>
                         <td class="p-2 text-right">總良品數: {{ number_format($plans->sum('tonyu_su')) }}</td>
