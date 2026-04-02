@@ -52,8 +52,7 @@ class DailyReportController extends Controller
                 'keitai.keitai_ryaku_lang4 as keitai_name',
                 'kikaku.sunpo_s',
                 'kikaku.sunpo_l',
-                'kikaku.itaatsu'                'kikaku.itaatsu',
-                // ★★★ 關鍵：強制 NVL 補 0，並指定與 JSON 一致的小寫別名 ★★★
+                'kikaku.itaatsu',
                 DB::raw('NVL(sm_sum.total_setsudan, 0) as total_setsudan') 
             ])
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
