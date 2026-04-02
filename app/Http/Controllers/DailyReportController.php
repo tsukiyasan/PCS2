@@ -40,8 +40,19 @@ class DailyReportController extends Controller
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
             ->select([
-                'keikaku.*',
-                'kikaku.itaatsu',
+                'keikaku.keikaku_no',
+                'keikaku.line',
+                'keikaku.tonyu_yotei_ymd',
+                'keikaku.seihin',
+                'keikaku.keikaku_su as tonyu_su',
+                'keikaku.moku_ryohin_su as ryohin_su',
+                'keikaku.choku',
+                'keikaku.order_no',
+                'keikaku.keitai_cd',
+                'keitai.keitai_ryaku_lang4 as keitai_name',
+                'kikaku.sunpo_s',
+                'kikaku.sunpo_l',
+                'kikaku.itaatsu'                'kikaku.itaatsu',
                 // ★★★ 關鍵：強制 NVL 補 0，並指定與 JSON 一致的小寫別名 ★★★
                 DB::raw('NVL(sm_sum.total_setsudan, 0) as total_setsudan') 
             ])
