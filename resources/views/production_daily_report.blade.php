@@ -108,6 +108,7 @@
                     @forelse($plans as $row)
                         <tr class="hover:bg-blue-50 transition duration-150 group">
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $row->tonyu_yotei_ymd }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{{ $row->keikaku_no }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-bold">{{ $row->line }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-blue-700 font-medium">{{ $row->seihin }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
