@@ -148,6 +148,13 @@
         </div>
 
     </form> </div>
-
+<script>
+    // 使用 Laravel 的 @json 指令將 PHP 物件轉換為 JavaScript 陣列
+    const phpData = @json($plans->items());
+    
+    console.log("--- 生產計畫查詢資料庫結果 ---");
+    console.table(phpData); // 使用 console.table 可以直接看表格形式，非常方便
+    console.log(phpData);
+</script>
 </body>
 </html>
