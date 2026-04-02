@@ -34,7 +34,7 @@ class ProductionPlanController extends Controller
                 'nh_sm.keikaku_no',
                 'nh_sm.line_cd',
                 'nh_sm.seihin',
-                DB::raw('SUM(nh_sm.SETSUDAN_SU) as total_setsudan')
+                DB::raw('SUM(nh_sm.SETSUDAN_SU) as TOTAL_SETSUDAN')
             ])
             ->where('nh_sm.COUNTRY_CD', 'TNHT')
             // 修正：同步使用主查詢的日期區間，確保實績能對上計畫
@@ -57,16 +57,17 @@ class ProductionPlanController extends Controller
                 'kikaku.sunpo_s',
                 'kikaku.sunpo_l',
                 'kikaku.itaatsu',
-                'sm_sum.total_setsudan' // 從子查詢帶入的欄位
+                'sm_sum.TOTAL_SETSUDAN' // 從子查詢帶入的欄位
             ])
             // Join 關聯表
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
             ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
             
             
-            //-- 6. 使用 leftJoinSub 將子查詢加入，並設定別名為 'sm_sum' --
+            //-- 6. 修改 leftJoinSub 關聯條件 --
             ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
-                // 強制將主表與子查詢的計畫編號都做 TRIM 處理再進行比對
+                // 1. 使用 DB::raw 加上 TRIM 強制去除兩邊可能的空白
+                // 2. 暫時移除 line 的比對，先確認計畫編號能對上
                 $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', DB::raw('TRIM(sm_sum.KEIKAKU_NO)'));
             });
             
