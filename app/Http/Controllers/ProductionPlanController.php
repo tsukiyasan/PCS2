@@ -66,8 +66,8 @@ class ProductionPlanController extends Controller
             
             //-- 6. 使用 leftJoinSub 將子查詢加入，並設定別名為 'sm_sum' --
             ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
-            $join->on('keikaku.keikaku_no', '=', 'sm_sum.KEIKAKU_NO');
-                //->on('keikaku.line', '=', 'sm_sum.LINE_CD');
+                // 強制將主表與子查詢的計畫編號都做 TRIM 處理再進行比對
+                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', DB::raw('TRIM(sm_sum.KEIKAKU_NO)'));
             });
             
             // 基本條件
