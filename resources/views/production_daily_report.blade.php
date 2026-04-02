@@ -92,7 +92,7 @@
                         </td>
 
                         <td class="p-2 text-right"></td>
-                        <td class="p-2 text-right">總投入數: {{ number_format($plans->sum('tonyu_su')) }}</td>
+                        <td class="p-2 text-right">總投入數: {{ number_format($plans->sum('total_setsudan')) }}</td>
                         <td class="p-2 text-right">總良品數: {{ number_format($plans->sum('tonyu_su')) }}</td>
                         <td class="p-2 text-right">總振替數: {{ number_format($plans->sum('tonyu_su')) }}</td>
                         <td class="p-2 text-right"></td>
