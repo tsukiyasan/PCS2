@@ -25,7 +25,7 @@ class ProductionPlanController extends Controller
             ->distinct()
             ->pluck('line');
 
-        // 3. 主查詢：完全放棄 JOIN 實績表，改用「selectRaw 關聯子查詢」
+        // 3. 主查詢：完全放棄 JOIN，改用「selectRaw 加上 NVL」
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
             ->select([
@@ -43,15 +43,14 @@ class ProductionPlanController extends Controller
                 'kikaku.sunpo_l',
                 'kikaku.itaatsu',
             ])
-            // ★★★ 終極殺招：直接在 SELECT 階段向 Oracle 要資料 ★★★
-            // 這種寫法會強迫 Oracle 直接計算出 TOTAL_SETSUDAN 欄位，Laravel PDO 只能乖乖接收
-            ->selectRaw("(
+            // ★★★ 終極殺招：NVL() 強制補 0，且不卡 SAGYO_YMD 日期 ★★★
+            // 只要計畫編號對得上，不管哪天切的實績通通加總回來
+            ->selectRaw("NVL((
                 SELECT SUM(nh_sm.SETSUDAN_SU) 
                 FROM NHT.NH_SETSUDAN_MENTORI nh_sm 
                 WHERE TRIM(nh_sm.KEIKAKU_NO) = TRIM(keikaku.keikaku_no) 
                   AND nh_sm.COUNTRY_CD = 'TNHT'
-                  AND nh_sm.SAGYO_YMD BETWEEN ? AND ?
-            ) AS TOTAL_SETSUDAN", [$dbDateStart, $dbDateEnd])
+            ), 0) AS TOTAL_SETSUDAN")
             
             // 僅保留基本主檔的 Join
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
