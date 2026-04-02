@@ -148,13 +148,26 @@
         </div>
 
     </form> </div>
+{{-- 將 PHP 陣列轉為 JSON 存放在 div 的 attribute 中 --}}
+<div id="debug-data-container" data-plans='@json($plans->items())' style="display:none;"></div>
+
 <script>
-    // 使用 {!! !!} 配合 json_encode 並加上 JSON_UNESCAPED_UNICODE 防止中文亂碼
-    const phpData = {!! json_encode($plans->items(), JSON_UNESCAPED_UNICODE) !!};
-    
-    console.log("--- 查詢結果除錯 ---");
-    console.table(phpData);
-    console.log(phpData);
+    try {
+        // 從 DOM 元素中抓取字串並解析
+        const container = document.getElementById('debug-data-container');
+        const phpData = JSON.parse(container.getAttribute('data-plans'));
+        
+        console.log("--- 查詢結果除錯 (從容器抓取) ---");
+        console.table(phpData);
+        console.log(phpData);
+        
+        // 檢查特定計畫編號
+        const t5Data = phpData.find(item => item.keikaku_no == '55019299');
+        console.log("T5 筆資料細節：", t5Data);
+        
+    } catch (e) {
+        console.error("解析 JSON 失敗：", e);
+    }
 </script>
 </body>
 </html>
