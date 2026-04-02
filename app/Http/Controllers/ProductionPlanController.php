@@ -9,12 +9,11 @@ class ProductionPlanController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. 處理日期
+        // 1. 處理日期與篩選
         $dateStartInput = $request->input('date_start', date('Y-m-d'));
         $dateEndInput   = $request->input('date_end', $dateStartInput);
         $dbDateStart = str_replace('-', '', $dateStartInput);
         $dbDateEnd   = str_replace('-', '', $dateEndInput);
-
         $filters = $request->input('filters', []);
 
         // 2. 下拉選單線別
@@ -25,18 +24,7 @@ class ProductionPlanController extends Controller
             ->distinct()
             ->pluck('line');
 
-        // 3. 建立子查詢 (完全還原你成功的 SQL，並拿掉日期限制以防實績落後)
-        $subQuery = DB::connection('oracle')
-            ->table('NHT.NH_SETSUDAN_MENTORI as nh_sm')
-            ->select([
-                'nh_sm.keikaku_no',
-                DB::raw('SUM(nh_sm.setsudan_su) as total_setsudan')
-            ])
-            ->where('nh_sm.country_cd', 'TNHT')
-            // 拿掉日期限制，只要編號一樣，所有實績通通算進來
-            ->groupBy('nh_sm.keikaku_no');
-
-        // 4. 主查詢
+        // 3. 主查詢：【完全不要 Join 實績表】，只撈計畫與主檔
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
             ->select([
@@ -53,41 +41,30 @@ class ProductionPlanController extends Controller
                 'kikaku.sunpo_s',
                 'kikaku.sunpo_l',
                 'kikaku.itaatsu',
-                // ★★★ 關鍵：強制 NVL 補 0，並指定與 JSON 一致的小寫別名 ★★★
-                DB::raw('NVL(sm_sum.total_setsudan, 0) as total_setsudan') 
             ])
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
             ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
-            
-            // 還原你手動 SQL 的精確 Join 條件 (不使用 TRIM)
-            ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
-                $join->on('keikaku.keikaku_no', '=', 'sm_sum.keikaku_no');
-            })
-            
             ->where('keikaku.country_cd', 'TNHT')
             ->whereBetween('keikaku.tonyu_yotei_ymd', [$dbDateStart, $dbDateEnd]);
 
-        // 5. 動態篩選
+        // 動態篩選
         $query->when(!empty($filters['line']), function ($q) use ($filters) {
             return $q->where('keikaku.line', $filters['line']);
         });
-
         $query->when(!empty($filters['keikaku_no']), function ($q) use ($filters) {
             $term = strtoupper(trim($filters['keikaku_no']));
             return $q->where(DB::raw('UPPER(keikaku.keikaku_no)'), 'like', "%{$term}%");
         });
-
         $query->when(!empty($filters['seihin']), function ($q) use ($filters) {
             $term = strtoupper(trim($filters['seihin']));
             return $q->where(DB::raw('UPPER(keikaku.seihin)'), 'like', "%{$term}%");
         });
-
         $query->when(!empty($filters['order_no']), function ($q) use ($filters) {
             $term = strtoupper(trim($filters['order_no']));
             return $q->where(DB::raw('UPPER(keikaku.order_no)'), 'like', "%{$term}%");
         });
 
-        // 6. 排序與分頁
+        // 4. 執行分頁 (讓 Yajra 安全地去解析最單純的 SQL)
         $plans = $query
             ->orderBy('keikaku.tonyu_yotei_ymd', 'ASC')
             ->orderBy('keikaku.line', 'ASC')
@@ -95,6 +72,44 @@ class ProductionPlanController extends Controller
             ->paginate(15)
             ->appends($request->all());
 
+        // ★★★ 5. 破局點：在 PHP 端組合實績資料 ★★★
+        // 抓出「當前這 15 筆」計畫的編號
+        $keikakuNos = collect($plans->items())->pluck('keikaku_no')->map(function($k) {
+            return trim($k);
+        })->filter()->toArray();
+
+        if (!empty($keikakuNos)) {
+            // 另外下一次輕量級的查詢，只抓這 15 筆的實績
+            $actualSums = DB::connection('oracle')
+                ->table('NHT.NH_SETSUDAN_MENTORI')
+                ->select([
+                    DB::raw('TRIM(KEIKAKU_NO) as keikaku_no'),
+                    DB::raw('SUM(SETSUDAN_SU) as total_setsudan')
+                ])
+                ->where('COUNTRY_CD', 'TNHT')
+                ->whereIn(DB::raw('TRIM(KEIKAKU_NO)'), $keikakuNos)
+                // 不限制 SAGYO_YMD，確保抓到所有跨天實績
+                ->groupBy(DB::raw('TRIM(KEIKAKU_NO)'))
+                ->get()
+                ->keyBy('keikaku_no'); // 轉成以編號為 Key 的 Collection
+
+            // 將實績塞回分頁結果中
+            foreach ($plans->items() as $plan) {
+                $kNo = trim($plan->keikaku_no);
+                if ($actualSums->has($kNo)) {
+                    $plan->total_setsudan = $actualSums[$kNo]->total_setsudan;
+                } else {
+                    $plan->total_setsudan = 0; // 沒實績就給 0
+                }
+            }
+        } else {
+            // 防呆處理，如果完全沒資料
+            foreach ($plans->items() as $plan) {
+                $plan->total_setsudan = 0;
+            }
+        }
+
+        // 6. 回傳視圖
         return view('production_plan', [
             'plans'     => $plans,
             'lines'     => $lines,
