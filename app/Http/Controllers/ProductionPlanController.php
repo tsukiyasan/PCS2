@@ -102,6 +102,16 @@ class ProductionPlanController extends Controller
             return $q->where(DB::raw('UPPER(keikaku.order_no)'), 'like', "%{$term}%");
         });
 
+        // 暴力測試：直接用計畫編號去查實績表
+$rawTest = DB::connection('oracle')
+    ->table('NHT.NH_SETSUDAN_MENTORI')
+    ->where(DB::raw('TRIM(KEIKAKU_NO)'), '55019299')
+    ->get();
+
+if ($rawTest->isEmpty()) {
+    // 如果這裡印出來是空的，代表你目前的資料庫連線帳號在實績表「完全沒有」這筆權限或資料
+    dd("警告：實績表查無資料，請檢查連線帳號或 Schema。");
+}
         // 6. 排序與分頁
         // ->appends($request->all()) 是關鍵！讓換頁時，篩選條件不會消失
         $plans = $query
