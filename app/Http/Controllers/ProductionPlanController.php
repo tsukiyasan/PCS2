@@ -31,15 +31,15 @@ class ProductionPlanController extends Controller
         $subQuery = DB::connection('oracle')
             ->table('NHT.NH_SETSUDAN_MENTORI as nh_sm')
             ->select([
-                'nh_sm.KEIKAKU_NO',
-                'nh_sm.LINE_CD',
-                'nh_sm.SEIHIN',
-                DB::raw('SUM(nh_sm.SETSUDAN_SU) as TOTAL_SETSUDAN')
+                'nh_sm.keikaku_no',
+                'nh_sm.line_cd',
+                'nh_sm.seihin',
+                DB::raw('SUM(nh_sm.SETSUDAN_SU) as total_setsudan')
             ])
             ->where('nh_sm.COUNTRY_CD', 'TNHT')
             // 修正：同步使用主查詢的日期區間，確保實績能對上計畫
             ->whereBetween('nh_sm.SAGYO_YMD', [$dbDateStart, $dbDateEnd]) 
-            ->groupBy('nh_sm.KEIKAKU_NO', 'nh_sm.LINE_CD', 'nh_sm.SEIHIN');
+            ->groupBy('nh_sm.keikaku_no', 'nh_sm.line_cd', 'nh_sm.seihin');
         // 4. 開始建構主查詢
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
@@ -57,7 +57,7 @@ class ProductionPlanController extends Controller
                 'kikaku.sunpo_s',
                 'kikaku.sunpo_l',
                 'kikaku.itaatsu',
-                'sm_sum.TOTAL_SETSUDAN'
+                'sm_sum.total_setsudan' // 從子查詢帶入的欄位
             ])
             // Join 關聯表
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
