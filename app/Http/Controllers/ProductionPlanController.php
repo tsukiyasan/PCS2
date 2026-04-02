@@ -28,7 +28,8 @@ class ProductionPlanController extends Controller
             ->distinct() // 去除重複
             ->pluck('line'); // 只取 line 欄位轉成陣列
 
-        $subQuery = DB::table('NHT.NH_SETSUDAN_MENTORI as nh_sm')
+        $subQuery = DB::connection('oracle')
+            ->table('NHT.NH_SETSUDAN_MENTORI as nh_sm')
             ->select([
                 'nh_sm.KEIKAKU_NO',
                 'nh_sm.LINE_CD',
@@ -65,8 +66,8 @@ class ProductionPlanController extends Controller
             
             //-- 6. 使用 leftJoinSub 將子查詢加入，並設定別名為 'sm_sum' --
             ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
-                // 使用 DB::raw 強制去除兩邊的空白再比對
-                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', DB::raw('TRIM(sm_sum.KEIKAKU_NO)'));
+            $join->on('keikaku.keikaku_no', '=', 'sm_sum.KEIKAKU_NO');
+                //->on('keikaku.line', '=', 'sm_sum.LINE_CD');
             });
             
             // 基本條件
