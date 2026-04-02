@@ -108,7 +108,9 @@ class ProductionPlanController extends Controller
             ->orderBy('keikaku.keikaku_no')
             ->paginate(15)
             ->appends($request->all());
-
+// 找出 T5 且計畫編號為 55019299 的那一筆，看看裡面到底有什麼
+$checkData = collect($plans->items())->firstWhere('keikaku_no', '55019299');
+dd($checkData);
         // 7. 回傳 View
         return view('production_plan', [
             'plans'     => $plans,
