@@ -48,7 +48,7 @@ class ProductionPlanController extends Controller
             ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
             
             // --- 核心修正：原生 SQL 注入，確保與資料庫工具跑出的語法一致 ---
-            ->leftJoin(DB::raw("(
+            ->Join(DB::raw("(
                 SELECT 
                     nh_sm.KEIKAKU_NO, 
                     SUM(nh_sm.SETSUDAN_SU) AS TOTAL_SETSUDAN
