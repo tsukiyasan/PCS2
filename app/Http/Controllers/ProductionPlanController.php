@@ -9,37 +9,33 @@ class ProductionPlanController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. 處理日期 (預設為當天)
-        // 前端 input type="date" 傳來的是 "2023-10-27"，需轉為 "20231027" 格式給 Oracle
         $dateStartInput = $request->input('date_start', date('Y-m-d'));
-        $dateEndInput   = $request->input('date_end', $dateStartInput); // 預設結束日等於開始日
+        $dateEndInput   = $request->input('date_end', $dateStartInput);
 
         $dbDateStart = str_replace('-', '', $dateStartInput);
         $dbDateEnd   = str_replace('-', '', $dateEndInput);
 
-        // 2. 接收表格內的篩選條件 (陣列形式 filters[line], filters[order_no]...)
         $filters = $request->input('filters', []);
 
-        // 3. 準備「線別」下拉選單的資料 (只撈該日期區間有的線別)
+        // 3. 準備「線別」選單
         $lines = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no')
             ->where('country_cd', 'TNHT')
             ->whereBetween('tonyu_yotei_ymd', [$dbDateStart, $dbDateEnd])
-            ->distinct() // 去除重複
-            ->pluck('line'); // 只取 line 欄位轉成陣列
+            ->distinct()
+            ->pluck('line');
 
-        // ProductionPlanController.php 內的子查詢部分
-// 1. 子查詢：先在裡面把 TRIM 做掉，並給予絕對大寫的別名
-
-        $subQuery = DB::connection('oracle') // 確保這裡一定要有連線
-    ->table('NHT.NH_SETSUDAN_MENTORI')
-    ->select([
-        DB::raw('TRIM(KEIKAKU_NO) as JOIN_KEY'),
-        DB::raw('CAST(SUM(SETSUDAN_SU) AS NUMBER) as TOTAL_SETSUDAN') // 強制轉型，避免驅動程式誤判
-    ])
-    ->where('COUNTRY_CD', 'TNHT')
-    ->groupBy(DB::raw('TRIM(KEIKAKU_NO)'));
-
+        // --- 修正 1：子查詢別名與分組明確化 ---
+        $subQuery = DB::connection('oracle')
+            ->table('NHT.NH_SETSUDAN_MENTORI')
+            ->select([
+                DB::raw('TRIM(KEIKAKU_NO) as JOIN_KEY'),
+                DB::raw('SUM(SETSUDAN_SU) as TOTAL_SETSUDAN')
+            ])
+            ->where('COUNTRY_CD', 'TNHT')
+            // 如果 SQL 查有數字但這裡沒有，通常是日期卡死，建議先放寬測試
+            ->whereBetween('SAGYO_YMD', [$dbDateStart, $dbDateEnd]) 
+            ->groupBy(DB::raw('TRIM(KEIKAKU_NO)'));
 
         // 4. 開始建構主查詢
         $query = DB::connection('oracle')
@@ -58,73 +54,49 @@ class ProductionPlanController extends Controller
                 'kikaku.sunpo_s',
                 'kikaku.sunpo_l',
                 'kikaku.itaatsu',
-                'sm_sum.TOTAL_SETSUDAN as TOTAL_SETSUDAN' // 從子查詢帶入的欄位
+                // --- 修正 2：明確指定 sm_sum 的來源，並加上大寫別名防止被 PDO 丟棄 ---
+                DB::raw('sm_sum.TOTAL_SETSUDAN as TOTAL_SETSUDAN') 
             ])
-            // Join 關聯表
             ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
             ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
             
-            
-            // -- 修改 leftJoinSub 關聯條件進行測試 --
+            // --- 修正 3：關聯條件改回 TRIM 確保精確比對 ---
             ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
-                // 測試：改用 LIKE 比對，看是不是有隱藏字元
-                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), 'LIKE', DB::raw("sm_sum.JOIN_KEY || '%'"));
-            });
+                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', 'sm_sum.JOIN_KEY');
+            })
             
-            // 基本條件
             ->where('keikaku.country_cd', 'TNHT')
             ->whereBetween('keikaku.tonyu_yotei_ymd', [$dbDateStart, $dbDateEnd]);
 
-        // ★★★ 5. 動態加入篩選條件 (Server-side Filtering) ★★★
-
-        // 篩選：線別 (完全比對)
+        // 5. 動態篩選
         $query->when(!empty($filters['line']), function ($q) use ($filters) {
             return $q->where('keikaku.line', $filters['line']);
         });
 
         $query->when(!empty($filters['keikaku_no']), function ($q) use ($filters) {
-            $term = strtoupper($filters['keikaku_no']); // PHP 端先轉大寫
-            // 寫法說明：where(欄位, 運算子, 值)
+            $term = strtoupper(trim($filters['keikaku_no']));
             return $q->where(DB::raw('UPPER(keikaku.keikaku_no)'), 'like', "%{$term}%");
         });
 
-        // 篩選：製品 (修正)
         $query->when(!empty($filters['seihin']), function ($q) use ($filters) {
-            $term = strtoupper($filters['seihin']);
+            $term = strtoupper(trim($filters['seihin']));
             return $q->where(DB::raw('UPPER(keikaku.seihin)'), 'like', "%{$term}%");
         });
 
-        // 篩選：訂單號 (修正)
-        $query->when(!empty($filters['order_no']), function ($q) use ($filters) {
-            $term = strtoupper($filters['order_no']);
-            return $q->where(DB::raw('UPPER(keikaku.order_no)'), 'like', "%{$term}%");
-        });
-
-        // 暴力測試：直接用計畫編號去查實績表
-$rawTest = DB::connection('oracle')
-    ->table('NHT.NH_SETSUDAN_MENTORI')
-    ->where(DB::raw('TRIM(KEIKAKU_NO)'), '55019299')
-    ->get();
-
-if ($rawTest->isEmpty()) {
-    // 如果這裡印出來是空的，代表你目前的資料庫連線帳號在實績表「完全沒有」這筆權限或資料
-    dd("警告：實績表查無資料，請檢查連線帳號或 Schema。");
-}
-        // 6. 排序與分頁
-        // ->appends($request->all()) 是關鍵！讓換頁時，篩選條件不會消失
+        // 6. 分頁
         $plans = $query
             ->orderBy('keikaku.tonyu_yotei_ymd')
             ->orderBy('keikaku.line')
             ->orderBy('keikaku.keikaku_no')
             ->paginate(15)
             ->appends($request->all());
-        // 7. 回傳 View
+
         return view('production_plan', [
             'plans'     => $plans,
             'lines'     => $lines,
-            'dateStart' => $dateStartInput, // 回傳給前端顯示用 (Y-m-d)
+            'dateStart' => $dateStartInput,
             'dateEnd'   => $dateEndInput,
-            'filters'   => $filters,    // 把使用者輸入的篩選字再傳回去，填入 input value
+            'filters'   => $filters,
         ]);
     }
 }
