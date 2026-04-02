@@ -29,17 +29,18 @@ class ProductionPlanController extends Controller
             ->pluck('line'); // 只取 line 欄位轉成陣列
 
         // ProductionPlanController.php 內的子查詢部分
-        $subQuery = DB::connection('oracle')
-            ->table('NHT.NH_SETSUDAN_MENTORI as nh_sm')
-            ->select([
-                'nh_sm.keikaku_no as JOIN_KEIKAKU_NO', // 明確大寫別名
-                'nh_sm.line_cd',
-                'nh_sm.seihin',
-                DB::raw('SUM(nh_sm.SETSUDAN_SU) as TOTAL_SETSUDAN') // 確保大寫
-            ])
-            ->where('nh_sm.COUNTRY_CD', 'TNHT')
-            ->whereBetween('nh_sm.SAGYO_YMD', [$dbDateStart, $dbDateEnd]) 
-            ->groupBy('nh_sm.keikaku_no', 'nh_sm.line_cd', 'nh_sm.seihin');
+// 1. 子查詢：先在裡面把 TRIM 做掉，並給予絕對大寫的別名
+$subQuery = DB::connection('oracle')
+    ->table('NHT.NH_SETSUDAN_MENTORI')
+    ->select([
+        DB::raw('TRIM(KEIKAKU_NO) as JOIN_KEY'), // 這是關鍵，先 TRIM 好
+        DB::raw('SUM(SETSUDAN_SU) as TOTAL_SETSUDAN')
+    ])
+    ->where('COUNTRY_CD', 'TNHT')
+    ->whereBetween('SAGYO_YMD', [$dbDateStart, $dbDateEnd]) 
+    ->groupBy(DB::raw('TRIM(KEIKAKU_NO)')); // 依照 TRIM 後的編號分組
+
+
 
         // 4. 開始建構主查詢
         $query = DB::connection('oracle')
@@ -67,7 +68,8 @@ class ProductionPlanController extends Controller
             
             //-- 6. 修改 leftJoinSub 關聯條件 --
             ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
-                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', DB::raw('TRIM(sm_sum.JOIN_KEIKAKU_NO)'));
+                // 因為子查詢已經 TRIM 過了，主表也要 TRIM 才能對上
+                $join->on(DB::raw('TRIM(keikaku.keikaku_no)'), '=', 'sm_sum.JOIN_KEY');
             });
             
             // 基本條件

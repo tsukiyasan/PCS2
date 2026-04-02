@@ -148,26 +148,22 @@
         </div>
 
     </form> </div>
-{{-- 將 PHP 陣列轉為 JSON 存放在 div 的 attribute 中 --}}
-<div id="debug-data-container" data-plans='@json($plans->items())' style="display:none;"></div>
-
+<td class="px-4 py-3 text-right">
+    @if(isset($row->TOTAL_SETSUDAN))
+        {{ number_format($row->TOTAL_SETSUDAN) }}
+    @elseif(isset($row->total_setsudan))
+        {{ number_format($row->total_setsudan) }}
+    @else
+        <span title="{{ json_encode($row) }}" style="color:red;">0 (Debug)</span>
+    @endif
+</td>
 <script>
-    try {
-        // 從 DOM 元素中抓取字串並解析
-        const container = document.getElementById('debug-data-container');
-        const phpData = JSON.parse(container.getAttribute('data-plans'));
-        
-        console.log("--- 查詢結果除錯 (從容器抓取) ---");
-        console.table(phpData);
-        console.log(phpData);
-        
-        // 檢查特定計畫編號
-        const t5Data = phpData.find(item => item.keikaku_no == '55019299');
-        console.log("T5 筆資料細節：", t5Data);
-        
-    } catch (e) {
-        console.error("解析 JSON 失敗：", e);
-    }
+    // 先轉 base64 再解碼，避開所有語法衝突
+    const base64Data = "{{ base64_encode(json_encode($plans->items())) }}";
+    const phpData = JSON.parse(atob(base64Data));
+    
+    console.log("--- 完整的資料列內容 ---");
+    console.table(phpData); 
 </script>
 </body>
 </html>
