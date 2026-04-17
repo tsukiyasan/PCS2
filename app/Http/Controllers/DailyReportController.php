@@ -55,33 +55,50 @@ class DailyReportController extends Controller
             ->where('furikae.country_cd', 'TNHT') // 根據 masterCountry 篩選
             ->whereBetween('furikae.furikae_ymd', [$dbDateStart, $dbDateEnd]) // 鎖定 20260413
             ->groupBy('furikae.ato_keikaku_no');
-        // 4. 主查詢整合 (包含計畫、切斷、良品、轉移)
+        // 4. 主查詢整合 (完全保留你原先的所有欄位，僅在末尾新增整合項)
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
             ->select([
                 'keikaku.keikaku_no',
-                'keikaku.seihin',
-                'keikaku.line', // <--- 確保這行在這裡
+                'keikaku.line', // 保留原位
                 'keikaku.tonyu_yotei_ymd',
-                // 實績欄位
-                DB::raw('NVL(sm_sum.total_setsudan, 0) as total_setsudan'), // 切斷總數
-                DB::raw('NVL(k_sum.total_ryohin, 0) as total_ryohin'),     // 檢查良品數
-                DB::raw('NVL(f_sum.total_furikae, 0) as total_furikae'),    // 振替數
+                'keikaku.seihin',
+                'keikaku.keikaku_su as tonyu_su',
+                'keikaku.moku_ryohin_su as ryohin_su', // 這是你原先定義的別名
+                'keikaku.choku',
+                'keikaku.order_no',
+                'keikaku.keitai_cd',
+                'keitai.keitai_ryaku_lang4 as keitai_name',
+                'kikaku.sunpo_s',
+                'kikaku.sunpo_l',
+                'kikaku.itaatsu',
+                DB::raw('NVL(sm_sum.total_setsudan, 0) as total_setsudan'),
+                // --- 以下為整合新增，不更動上方原有的 select 內容 ---
+                DB::raw('NVL(k_sum.total_ryohin, 0) as total_ryohin'),
+                DB::raw('NVL(f_sum.total_furikae, 0) as total_furikae'),
                 // 計算綜合達成數 (良品數 + 轉移數)
                 DB::raw('(NVL(k_sum.total_ryohin, 0) + NVL(f_sum.total_furikae, 0)) as total_actual_output')
             ])
-            // Join A: 切斷 (累計實績)
-            ->leftJoinSub($subQuery, 'sm_sum', 'keikaku.keikaku_no', '=', 'sm_sum.keikaku_no')
+            ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
+            ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
             
-            // Join B: 檢查良品 (K19 實績)
-            ->leftJoinSub($kensaSubQuery, 'k_sum', 'keikaku.keikaku_no', '=', 'k_sum.keikaku_no')
-            
-            // Join C: 振替 (轉移實績)
-            ->leftJoinSub($furikaeSubQuery, 'f_sum', 'keikaku.keikaku_no', '=', 'f_sum.ato_keikaku_no')
+            // Join A: 切斷子查詢
+            ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
+                $join->on('keikaku.keikaku_no', '=', 'sm_sum.keikaku_no');
+            })
+
+            // Join B: 良品子查詢 (K19)
+            ->leftJoinSub($kensaSubQuery, 'k_sum', function ($join) {
+                $join->on('keikaku.keikaku_no', '=', 'k_sum.keikaku_no');
+            })
+
+            // Join C: 振替子查詢 (整合新增)
+            ->leftJoinSub($furikaeSubQuery, 'f_sum', function ($join) {
+                $join->on('keikaku.keikaku_no', '=', 'f_sum.ato_keikaku_no');
+            })
             
             ->where('keikaku.country_cd', 'TNHT')
             ->whereBetween('keikaku.tonyu_yotei_ymd', [$dbDateStart, $dbDateEnd]);
-
         // 5. 動態篩選 (保持原樣)
         $query->when(!empty($filters['line']), function ($q) use ($filters) {
             return $q->where('keikaku.line', $filters['line']);
