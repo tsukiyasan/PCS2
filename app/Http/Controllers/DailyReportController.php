@@ -50,7 +50,7 @@ class DailyReportController extends Controller
             ->table('NHT.nh_shikakari_furikae as furikae')
             ->select([
                 'furikae.ato_keikaku_no', // 這裡用 ato_keikaku_no 作為 Join 鍵，代表轉入該計畫的實績
-                DB::raw('SUM(furikae.total_maisu) as total_furikae')
+                DB::raw('SUM(furikae.SURYO) as total_furikae')
             ])
             ->where('furikae.country_cd', 'TNHT') // 根據 masterCountry 篩選
             ->whereBetween('furikae.furikae_ymd', [$dbDateStart, $dbDateEnd]) // 鎖定 20260413
