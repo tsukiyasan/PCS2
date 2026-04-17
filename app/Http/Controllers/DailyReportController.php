@@ -45,48 +45,38 @@ class DailyReportController extends Controller
             ->where('k.kensa_shurui', 'K19') 
             ->whereBetween('k.sagyo_ymd', [$dbDateStart, $dbDateEnd])
             ->groupBy('k.keikaku_no');
-
-        // 4. 主查詢
+        // 建立子查詢 C: 在製品轉移實績 (振替)
+        $furikaeSubQuery = DB::connection('oracle')
+            ->table('NHT.nh_shikakari_furikae as furikae')
+            ->select([
+                'furikae.ato_keikaku_no', // 這裡用 ato_keikaku_no 作為 Join 鍵，代表轉入該計畫的實績
+                DB::raw('SUM(furikae.total_maisu) as total_furikae')
+            ])
+            ->where('furikae.country_cd', 'TNHT') // 根據 masterCountry 篩選
+            ->whereBetween('furikae.furikae_ymd', [$dbDateStart, $dbDateEnd]) // 鎖定 20260413
+            ->groupBy('furikae.ato_keikaku_no');
+        // 4. 主查詢整合 (包含計畫、切斷、良品、轉移)
         $query = DB::connection('oracle')
             ->table('NHT.nh_keikaku_no as keikaku')
             ->select([
                 'keikaku.keikaku_no',
-                'keikaku.line',
-                'keikaku.tonyu_yotei_ymd',
                 'keikaku.seihin',
-                'keikaku.keikaku_su as tonyu_su',     // 投入計畫數
-                'keikaku.moku_ryohin_su as moku_su', // 目標良品數
-                'keikaku.choku',
-                'keikaku.order_no',
-                'keikaku.keitai_cd',
-                'keitai.keitai_ryaku_lang4 as keitai_name',
-                'kikaku.sunpo_s',
-                'kikaku.sunpo_l',
-                'kikaku.itaatsu',
-                // 實績欄位處理 (使用 NVL 避免 null 導致計算出錯)
-                DB::raw('NVL(sm_sum.total_setsudan, 0) as total_setsudan'),
-                DB::raw('NVL(k_sum.total_ryohin, 0) as total_ryohin'),
-                // 計算達成率 (良品實績 / 目標良品數)
-                DB::raw('CASE WHEN keikaku.moku_ryohin_su > 0 
-                              THEN ROUND(NVL(k_sum.total_ryohin, 0) / keikaku.moku_ryohin_su * 100, 2) 
-                              ELSE 0 END as achieve_rate'),
-                // 計算良率 (良品實績 / 切斷總數)
-                DB::raw('CASE WHEN NVL(sm_sum.total_setsudan, 0) > 0 
-                              THEN ROUND(NVL(k_sum.total_ryohin, 0) / sm_sum.total_setsudan * 100, 2) 
-                              ELSE 0 END as yield_rate')
+                'keikaku.tonyu_yotei_ymd',
+                // 實績欄位
+                DB::raw('NVL(sm_sum.total_setsudan, 0) as total_setsudan'), // 切斷總數
+                DB::raw('NVL(k_sum.total_ryohin, 0) as total_ryohin'),     // 檢查良品數
+                DB::raw('NVL(f_sum.total_furikae, 0) as total_furikae'),    // 振替數
+                // 計算綜合達成數 (良品數 + 轉移數)
+                DB::raw('(NVL(k_sum.total_ryohin, 0) + NVL(f_sum.total_furikae, 0)) as total_actual_output')
             ])
-            ->leftJoin('NHT.nh_kikakusho_mst as kikaku', 'keikaku.seihin', '=', 'kikaku.seihin')
-            ->leftJoin('NHT.nh_konpokeitai_mst as keitai', 'keikaku.keitai_cd', '=', 'keitai.keitai_cd')
+            // Join A: 切斷 (累計實績)
+            ->leftJoinSub($subQuery, 'sm_sum', 'keikaku.keikaku_no', '=', 'sm_sum.keikaku_no')
             
-            // Join A: 切斷子查詢
-            ->leftJoinSub($subQuery, 'sm_sum', function ($join) {
-                $join->on('keikaku.keikaku_no', '=', 'sm_sum.keikaku_no');
-            })
-
-            // Join B: 良品子查詢 (新加入)
-            ->leftJoinSub($kensaSubQuery, 'k_sum', function ($join) {
-                $join->on('keikaku.keikaku_no', '=', 'k_sum.keikaku_no');
-            })
+            // Join B: 檢查良品 (K19 實績)
+            ->leftJoinSub($kensaSubQuery, 'k_sum', 'keikaku.keikaku_no', '=', 'k_sum.keikaku_no')
+            
+            // Join C: 振替 (轉移實績)
+            ->leftJoinSub($furikaeSubQuery, 'f_sum', 'keikaku.keikaku_no', '=', 'f_sum.ato_keikaku_no')
             
             ->where('keikaku.country_cd', 'TNHT')
             ->whereBetween('keikaku.tonyu_yotei_ymd', [$dbDateStart, $dbDateEnd]);
