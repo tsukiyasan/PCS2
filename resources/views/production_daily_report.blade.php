@@ -93,7 +93,7 @@
 
                         <td class="p-2 text-right"></td>
                         <td class="p-2 text-right">總投入數: {{ number_format($plans->sum('total_setsudan')) }}</td>
-                        <td class="p-2 text-right">總良品數: {{ number_format($plans->sum('k_sum')) }}</td>
+                        <td class="p-2 text-right">總良品數: {{ number_format($plans->sum('total_ryohin')) }}</td>
                         <td class="p-2 text-right">總振替數: {{ number_format($plans->sum('tonyu_su')) }}</td>
                         <td class="p-2 text-right"></td>
                         <td class="p-2 text-right"></td>
@@ -119,7 +119,7 @@
                                 {{ number_format($row->total_setsudan ?? 0) }}
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
-                                {{ number_format($row->k_sum ?? 0) }}
+                                {{ number_format($row->total_ryohin ?? 0) }}
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
                                 {{ number_format($row->tonyu_su) }}
