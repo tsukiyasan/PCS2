@@ -61,6 +61,7 @@ class DailyReportController extends Controller
             ->select([
                 'keikaku.keikaku_no',
                 'keikaku.seihin',
+                'keikaku.line', // <--- 確保這行在這裡
                 'keikaku.tonyu_yotei_ymd',
                 // 實績欄位
                 DB::raw('NVL(sm_sum.total_setsudan, 0) as total_setsudan'), // 切斷總數
