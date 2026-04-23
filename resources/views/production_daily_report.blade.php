@@ -75,8 +75,8 @@
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-mono">{{ number_format($row->total_ryohin ?? 0) }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-mono">
                                 {{ number_format($row->total_furikae ?? 0) }}
-                                @if(($row->total_furikae ?? 0) != 0 && !empty($row->paretto_no))
-                                    <span class="bg-gray-100 text-gray-500 text-[10px] px-1 rounded ml-1">({{ $row->paretto_no }})</span>
+                                @if(($row->total_furikae ?? 0) != 0 && !empty($row->mae_seihin))
+                                    <span class="bg-gray-100 text-gray-500 text-[10px] px-1 rounded ml-1">({{ $row->mae_seihin }})</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{{ $row->keitai_name }}</td>

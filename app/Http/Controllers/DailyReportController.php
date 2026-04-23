@@ -51,7 +51,7 @@ class DailyReportController extends Controller
             ->select([
                 'furikae.ato_keikaku_no', // 這裡用 ato_keikaku_no 作為 Join 鍵，代表轉入該計畫的實績
                 DB::raw('SUM(furikae.SURYO) as total_furikae'),
-                DB::raw('MAX(furikae.paretto_no) as paretto_no')
+                DB::raw('MAX(furikae.mae_seihin) as mae_seihin'), // 轉移前產品
             ])
             ->where('furikae.country_cd', 'TNHT') // 根據 masterCountry 篩選
             ->whereBetween('furikae.furikae_ymd', [$dbDateStart, $dbDateEnd]) // 鎖定 20260413
@@ -77,7 +77,7 @@ class DailyReportController extends Controller
                 // --- 以下為整合新增，不更動上方原有的 select 內容 ---
                 DB::raw('NVL(k_sum.total_ryohin, 0) as total_ryohin'),
                 DB::raw('NVL(f_sum.total_furikae, 0) as total_furikae'),
-                DB::raw('NVL(f_sum.paretto_no, 0) as paretto_no'),
+                DB::raw('NVL(f_sum.mae_seihin, 0) as mae_seihin'),
                 // 計算綜合達成數 (良品數 + 轉移數)
                 DB::raw('(NVL(k_sum.total_ryohin, 0) + NVL(f_sum.total_furikae, 0)) as total_actual_output')
             ])
