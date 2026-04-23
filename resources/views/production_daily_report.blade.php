@@ -119,9 +119,9 @@
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
                                 @if(($row->total_setsudan ?? 0) > 0)
-                                    {{ number_format((($row->total_ryohin ?? 0) / $row->total_setsudan) * 100, 2) }}%
+                                    {{ number_format((($row->total_ryohin ?? 0) / $row->total_setsudan) * 100, 1) }}%
                                 @else
-                                    0.00%
+                                    0.0%
                                 @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
