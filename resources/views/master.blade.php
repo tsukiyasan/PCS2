@@ -37,7 +37,7 @@
                 </div>
             </div>
             <div class="text-sm font-medium text-gray-700">
-                管理員: Zheng Qunyao
+                使用者: xxx
             </div>
         </header>
 
