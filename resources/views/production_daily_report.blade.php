@@ -59,6 +59,7 @@
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">線別</th>
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">製品</th>
                         <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">尺寸(S/L)</th>
+                        <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">良率</th>
                         <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">投入數</th>
                         <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">良品數</th>
                         <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">振替數</th>
@@ -92,6 +93,7 @@
                         </td>
 
                         <td class="p-2 text-right"></td>
+                        <td class="p-2 text-right"></td>
                         <td class="p-2 text-right">總投入數: {{ number_format($plans->sum('total_setsudan')) }}</td>
                         <td class="p-2 text-right">總良品數: {{ number_format($plans->sum('total_ryohin')) }}</td>
                         <td class="p-2 text-right">總振替數: {{ number_format($plans->sum('total_furikae')) }}</td>
@@ -114,6 +116,13 @@
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-blue-700 font-medium">{{ $row->seihin }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
                                 {{ $row->sunpo_s }} / {{ $row->sunpo_l }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                                @if(($row->total_setsudan ?? 0) > 0)
+                                    {{ number_format((($row->total_ryohin ?? 0) / $row->total_setsudan) * 100, 2) }}%
+                                @else
+                                    0.00%
+                                @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
                                 {{ number_format($row->total_setsudan ?? 0) }}
