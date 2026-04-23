@@ -77,6 +77,7 @@ class DailyReportController extends Controller
                 // --- 以下為整合新增，不更動上方原有的 select 內容 ---
                 DB::raw('NVL(k_sum.total_ryohin, 0) as total_ryohin'),
                 DB::raw('NVL(f_sum.total_furikae, 0) as total_furikae'),
+                DB::raw('NVL(f_sum.paretto_no, 0) as paretto_no'),
                 // 計算綜合達成數 (良品數 + 轉移數)
                 DB::raw('(NVL(k_sum.total_ryohin, 0) + NVL(f_sum.total_furikae, 0)) as total_actual_output')
             ])
