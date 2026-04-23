@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生產計劃表</title>
+    <title>生產量查詢</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 自定義樣式：讓表格內的 input 更緊湊好看 */
@@ -27,7 +27,7 @@
 <div class="max-w-[98%] mx-auto">
     
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-gray-700">生產計劃查詢</h1>
+        <h1 class="text-2xl font-bold text-gray-700">生產量查詢</h1>
     </div>
 
     <form method="GET" action="" id="searchForm">
