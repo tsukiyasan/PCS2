@@ -1,4 +1,4 @@
-@extends('layouts.master')
+@extends('master')
 
 @section('title', '生產量查詢')
 @section('page_name', '生產量查詢')
