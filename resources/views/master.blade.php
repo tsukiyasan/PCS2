@@ -21,9 +21,9 @@
         <nav class="flex-1 py-4 px-3 space-y-1">
             <a href="#" class="flex items-center px-3 py-2 text-white bg-blue-600 rounded-lg mb-2">
                 <i class="fa-solid fa-chart-line w-6"></i>
-                <span class="ml-3">生產日報表</span>
+                <span class="ml-3">生產量查詢</span>
             </a>
-            </nav>
+        </nav>
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0 bg-white">
