@@ -51,7 +51,7 @@ class DailyReportController extends Controller
             ->select([
                 'furikae.ato_keikaku_no', // 這裡用 ato_keikaku_no 作為 Join 鍵，代表轉入該計畫的實績
                 DB::raw('SUM(furikae.SURYO) as total_furikae'),
-                'furikae.PARETTO_NO'
+                DB::raw('MAX(furikae.paretto_no) as paretto_no')
             ])
             ->where('furikae.country_cd', 'TNHT') // 根據 masterCountry 篩選
             ->whereBetween('furikae.furikae_ymd', [$dbDateStart, $dbDateEnd]) // 鎖定 20260413
