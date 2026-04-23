@@ -122,7 +122,10 @@
                                 {{ number_format($row->total_ryohin ?? 0) }}
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
-                                {{ number_format($row->total_furikae) }}
+                                {{ number_format($row->total_furikae ?? 0) }}
+                                @if(($row->total_furikae ?? 0) != 0 && !empty($row->paretto_no))
+                                    <small class="text-muted">({{ $row->paretto_no }})</small>
+                                @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $row->keitai_name }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ number_format((float)$row->itaatsu, 1) }}</td>
