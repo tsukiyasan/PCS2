@@ -45,11 +45,11 @@
                         </td>
                         <td class="p-2"><input type="text" name="filters[seihin]" value="{{ $filters['seihin'] ?? '' }}" class="filter-input" placeholder="搜尋..."></td>
                         <td class="p-2"></td>
-                        <td class="p-2" colspan="2"></td>
                        <td class="p-2 text-right text-xs font-bold text-blue-600">總計：</td>
                         <td class="p-2 text-right text-xs font-bold text-gray-700">{{ number_format($plans->sum('total_setsudan')) }}</td>
                         <td class="p-2 text-right text-xs font-bold text-gray-700">{{ number_format($plans->sum('total_ryohin')) }}</td>
                         <td class="p-2 text-right text-xs font-bold text-gray-700">{{ number_format($plans->sum('total_furikae')) }}</td>
+                        <td class="p-2" colspan="2"></td>
                         <td class="p-2"><input type="text" name="filters[order_no]" value="{{ $filters['order_no'] ?? '' }}" class="filter-input" placeholder="搜尋..."></td>
                     </tr>
                 </thead>
