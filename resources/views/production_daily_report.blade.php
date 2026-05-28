@@ -80,7 +80,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{{ $row->keitai_name }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{{ number_format((float)$row->itaatsu, 1) }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{{ number_format((float)$row->itaatsu, 2) }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-400">{{ $row->order_no }}</td>
                         </tr>
                     @empty
