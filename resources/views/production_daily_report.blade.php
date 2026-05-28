@@ -27,7 +27,7 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        @foreach(['日期', '計畫編號', '線別', '製品', '尺寸(S/L)', '良率', '投入數', '良品數', '振替數', '形態', '厚度', '訂單號'] as $head)
+                        @foreach(['日期', '計畫編號', '線別', '製品', '尺寸(S/L)', '厚度', '良率', '投入數', '良品數', '振替數', '形態', '訂單號'] as $head)
                             <th class="px-4 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ $head }}</th>
                         @endforeach
                     </tr>
@@ -45,11 +45,11 @@
                         </td>
                         <td class="p-2"><input type="text" name="filters[seihin]" value="{{ $filters['seihin'] ?? '' }}" class="filter-input" placeholder="搜尋..."></td>
                         <td class="p-2"></td>
-                        <td class="p-2 text-right text-xs font-bold text-blue-600">總計：</td>
+                        <td class="p-2" colspan="2"></td>
+                       <td class="p-2 text-right text-xs font-bold text-blue-600">總計：</td>
                         <td class="p-2 text-right text-xs font-bold text-gray-700">{{ number_format($plans->sum('total_setsudan')) }}</td>
                         <td class="p-2 text-right text-xs font-bold text-gray-700">{{ number_format($plans->sum('total_ryohin')) }}</td>
                         <td class="p-2 text-right text-xs font-bold text-gray-700">{{ number_format($plans->sum('total_furikae')) }}</td>
-                        <td class="p-2" colspan="2"></td>
                         <td class="p-2"><input type="text" name="filters[order_no]" value="{{ $filters['order_no'] ?? '' }}" class="filter-input" placeholder="搜尋..."></td>
                     </tr>
                 </thead>
@@ -62,6 +62,7 @@
                             <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-slate-700">{{ $row->line }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-blue-700 font-semibold">{{ $row->seihin }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center">{{ $row->sunpo_s }} / {{ $row->sunpo_l }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{{ number_format((float)$row->itaatsu, 2) }}</td>
                             
                             {{-- 良率變色邏輯 --}}
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-mono font-bold">
@@ -80,7 +81,6 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{{ $row->keitai_name }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{{ number_format((float)$row->itaatsu, 2) }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-400">{{ $row->order_no }}</td>
                         </tr>
                     @empty
