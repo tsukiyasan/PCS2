@@ -19,9 +19,13 @@
             NHT System
         </div>
         <nav class="flex-1 py-4 px-3 space-y-1">
-            <a href="#" class="flex items-center px-3 py-2 text-white bg-blue-600 rounded-lg mb-2">
+            <a href="./report" class="flex items-center px-3 py-2 text-white bg-blue-600 rounded-lg mb-2">
                 <i class="fa-solid fa-chart-line w-6"></i>
                 <span class="ml-3">生產量查詢</span>
+            </a>
+            <a href="./stock" class="flex items-center px-3 py-2 text-white bg-blue-600 rounded-lg mb-2">
+                <i class="fa-solid fa-chart-line w-6"></i>
+                <span class="ml-3">庫存查詢</span>
             </a>
         </nav>
     </aside>
