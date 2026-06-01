@@ -122,7 +122,7 @@ class StockController extends Controller
         });
 
         // 6. 排序與分頁
-        $plans = $query
+        $stocks = $query
             ->orderBy('keikaku.tonyu_yotei_ymd', 'ASC')
             ->orderBy('keikaku.line', 'ASC')
             ->orderBy('keikaku.keikaku_no', 'ASC')
@@ -130,7 +130,7 @@ class StockController extends Controller
             ->appends($request->all());
 
         return view('stock', [
-            'plans'     => $plans,
+            'stocks'     => $stocks,
             'lines'     => $lines,
             'dateStart' => $dateStartInput,
             'dateEnd'   => $dateEndInput,
