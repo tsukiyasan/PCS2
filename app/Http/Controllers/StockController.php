@@ -129,7 +129,7 @@ class StockController extends Controller
             ->paginate(15)
             ->appends($request->all());
 
-        return view('production_daily_report', [
+        return view('stock', [
             'plans'     => $plans,
             'lines'     => $lines,
             'dateStart' => $dateStartInput,
