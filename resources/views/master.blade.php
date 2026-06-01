@@ -19,12 +19,14 @@
             NHT System
         </div>
         <nav class="flex-1 py-4 px-3 space-y-1">
-            <a href="./report" class="flex items-center px-3 py-2 text-white bg-blue-600 rounded-lg transition-colors duration-150">
+            {{-- 生產量查詢：使用 url() 確保路徑正確，並透過 request()->is() 動態高亮 --}}
+            <a href="{{ url('/report') }}" class="flex items-center px-3 py-2 rounded-lg transition-colors duration-150 {{ request()->is('report*') ? 'text-white bg-blue-600' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                 <i class="fa-solid fa-chart-line w-6 text-center"></i>
                 <span class="ml-3">生產量查詢</span>
             </a>
             
-            <a href="./stock" class="flex items-center px-3 py-2 text-gray-300 hover:bg-gray-800 hover:text-white rounded-lg transition-colors duration-150">
+            {{-- 庫存查詢：同上，自動判斷是否處於 stock 頁面 --}}
+            <a href="{{ url('/stock') }}" class="flex items-center px-3 py-2 rounded-lg transition-colors duration-150 {{ request()->is('stock*') ? 'text-white bg-blue-600' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                 <i class="fa-solid fa-boxes-stacked w-6 text-center"></i>
                 <span class="ml-3">庫存查詢</span>
             </a>
@@ -55,7 +57,7 @@
         document.getElementById('toggleSidebar').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('w-64');
-            sidebar.classList.toggle('w-0'); // 或者用你的縮小邏輯
+            sidebar.classList.toggle('w-0'); 
             sidebar.classList.toggle('overflow-hidden');
         });
     </script>
