@@ -22,7 +22,7 @@ class StockController extends Controller
         $yymm  = Carbon::parse($dateStartInput)->format('Ym');
 
         // 2. 🌟 建立內層核心加總的子查詢 (Subquery)
-        $subquery = DB::table('nh_seihin_ukeharai as s')
+        $subquery = DB::connection('oracle')->table('nh_seihin_ukeharai s')
             ->select([
                 DB::raw('TRIM(s.seihin) AS seihin'),
                 DB::raw('MAX(s.ukeharai_ymd) AS latest_ukeharai_ymd'),
@@ -38,7 +38,7 @@ class StockController extends Controller
             ->groupBy(DB::raw('TRIM(s.seihin)'));
 
         // 3. 🌟 主查詢：利用 fromSub 整合子查詢並進行外部關聯
-        $dbData = DB::query()
+        $dbData = DB::connection('oracle')->query()
             ->select([
                 'yoto.yoto_name AS yoto_name',
                 'summary.seihin AS seihin',
