@@ -30,7 +30,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         {{-- 🌟 修正點 1：表頭加入「枚數」與「最新受拂日」 --}}
-                        @foreach(['年月', '用途', '製品', '客戶別', '捆包日', '枚數', '最新受拂日'] as $head)
+                        @foreach(['年月', '用途', '製品', '客戶別', '捆包日', '枚數'] as $head)
                             <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 {{ $head }}
                             </th>
@@ -53,7 +53,6 @@
                         <td class="p-2"></td> {{-- 捆包日 --}}
                         {{-- 🌟 修正點 2：補上過濾列對應的空白 td，保持版面不跑版 --}}
                         <td class="p-2"></td> {{-- 枚數 --}}
-                        <td class="p-2"></td> {{-- 最新受拂日 --}}
                     </tr>
                 </thead>
 
@@ -80,13 +79,11 @@
                                 {{ number_format($row->maisu) }}
                             </td>
 
-                            {{-- 🌟 修正點 4：綁定最新受拂日資料 --}}
-                            <td class="px-6 py-3 whitespace-nowrap font-mono text-xs text-gray-500">{{ $row->ukeharai_ymd }}</td>
                         </tr>
                     @empty
                         <tr>
-                            {{-- 🌟 修正點 5：欄位變多了，colspan 也要從 5 改成 7 --}}
-                            <td colspan="7" class="px-6 py-20 text-center">
+                            {{-- 🌟 修正點 5：欄位變多了，colspan 也要從 5 改成 6 --}}
+                            <td colspan="6" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center opacity-40">
                                     <i class="fa-solid fa-boxes-stacked text-4xl mb-2"></i>
                                     <span class="text-lg">目前無庫存資料</span>
