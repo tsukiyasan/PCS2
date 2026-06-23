@@ -24,12 +24,13 @@
             </a>
         </div>
 
-        {{-- 庫存表格區塊：只保留黃色 5 個欄位 --}}
+        {{-- 庫存表格區塊：加入枚數與最新受拂日 --}}
         <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-200">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        @foreach(['年月', '用途', '製品', '客戶別', '捆包日'] as $head)
+                        {{-- 🌟 修正點 1：表頭加入「枚數」與「最新受拂日」 --}}
+                        @foreach(['年月', '用途', '製品', '客戶別', '捆包日', '枚數', '最新受拂日'] as $head)
                             <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 {{ $head }}
                             </th>
@@ -50,6 +51,9 @@
                         <td class="p-2"><input type="text" name="filters[seihin]" value="{{ $filters['seihin'] ?? '' }}" class="filter-input" placeholder="搜尋製品..."></td>
                         <td class="p-2"><input type="text" name="filters[customer]" value="{{ $filters['customer'] ?? '' }}" class="filter-input" placeholder="搜尋客戶..."></td>
                         <td class="p-2"></td> {{-- 捆包日 --}}
+                        {{-- 🌟 修正點 2：補上過濾列對應的空白 td，保持版面不跑版 --}}
+                        <td class="p-2"></td> {{-- 枚數 --}}
+                        <td class="p-2"></td> {{-- 最新受拂日 --}}
                     </tr>
                 </thead>
 
@@ -70,10 +74,19 @@
                             
                             {{-- 捆包日 --}}
                             <td class="px-6 py-3 whitespace-nowrap font-mono text-xs text-gray-500">{{ $row->konbao_ymd }}</td>
+
+                            {{-- 🌟 修正點 3：綁定枚數資料 (加上右靠齊與顏色標示) --}}
+                            <td class="px-6 py-3 whitespace-nowrap font-semibold text-emerald-600">
+                                {{ number_format($row->maisu) }}
+                            </td>
+
+                            {{-- 🌟 修正點 4：綁定最新受拂日資料 --}}
+                            <td class="px-6 py-3 whitespace-nowrap font-mono text-xs text-gray-500">{{ $row->ukeharai_ymd }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-20 text-center">
+                            {{-- 🌟 修正點 5：欄位變多了，colspan 也要從 5 改成 7 --}}
+                            <td colspan="7" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center opacity-40">
                                     <i class="fa-solid fa-boxes-stacked text-4xl mb-2"></i>
                                     <span class="text-lg">目前無庫存資料</span>
