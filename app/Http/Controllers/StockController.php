@@ -104,9 +104,15 @@ class StockController extends Controller
             ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
         );
 
-        // 7. 用途下拉選單 (建議未來也可以改成從 DB::connection('oracle')->table('nh_yoto_mst')->pluck('yoto_name') 動態抓取)
-        $yotoOptions = ['TFT', 'OLED', 'STN'];
-
+        // 7. 🌟 動態抓取用途主檔的 yoto_name 作為下拉選單選項
+        $yotoOptions = DB::connection('oracle')
+            ->table('nh_yoto_mst')
+            ->select(DB::raw('TRIM(yoto_name) as yoto_name')) // 確保選項沒有隱藏空白
+            ->whereNotNull('yoto_name') // 排除空值
+            ->distinct() // 確保選項不重複
+            ->orderBy('yoto_name', 'asc') // 依英文字母/筆畫排序
+            ->pluck('yoto_name');
+    
         // 8. 回傳至 stock.blade.php
         return view('stock', [
             'stocks'      => $stocks,
