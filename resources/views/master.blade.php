@@ -27,7 +27,7 @@
             
             {{-- 庫存查詢：同上，自動判斷是否處於 stock 頁面 --}}
             <a href="{{ url('/stock') }}" class="flex items-center px-3 py-2 rounded-lg transition-colors duration-150 {{ request()->is('stock*') ? 'text-white bg-blue-600' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <i class="fa-solid fa-boxes-stacked w-6 text-center"></i>
+                <i class="fa-solid fa-box-archive w-6 text-center"></i>
                 <span class="ml-3">庫存查詢</span>
             </a>
         </nav>
