@@ -11,17 +11,18 @@ class StockController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. 取得畫面上選擇的篩選條件與日期
-        $dateStartInput = $request->get('date_start', '2026-06-01');
-        $dateEndInput   = $request->get('date_end', '2026-06-30');
-        
+// 1. 取得畫面上選擇的篩選條件與日期
+        // 如果使用者沒輸入，預設為「當月第一天」與「當月最後一天」(格式：YYYY-MM-DD)
+        $dateStartInput = $request->get('date_start', now()->startOfMonth()->format('Y-m-d'));
+        $dateEndInput   = $request->get('date_end', now()->endOfMonth()->format('Y-m-d'));      
+          
         // 🌟 接收畫面的過濾條件陣列 (預設為空陣列)
         $filters = $request->get('filters', []);
 
         // 轉換為資料庫格式 (YYYYMMDD)
         $start = Carbon::parse($dateStartInput)->format('Ymd');
         $end   = Carbon::parse($dateEndInput)->format('Ymd');
-        $yymm  = Carbon::parse($dateStartInput)->format('Ym');
+        $yymm  = Carbon::parse($dateEndInput)->format('Ym');
 
         // 2. 建立內層核心加總的子查詢 (Subquery)
         $subquery = DB::connection('oracle')->table('nh_seihin_ukeharai s')
@@ -128,7 +129,7 @@ class StockController extends Controller
             ->orderBy('yoto_name', 'asc')
             ->pluck('yoto_name')
             ->toArray(); // 轉回純陣列供 Blade 使用
-            
+
         // 8. 回傳至 stock.blade.php
         return view('stock', [
             'stocks'      => $stocks,
