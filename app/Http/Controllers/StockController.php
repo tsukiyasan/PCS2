@@ -14,14 +14,16 @@ class StockController extends Controller
         // 1. 取得畫面上選擇的篩選條件與日期
         $dateStartInput = $request->get('date_start', '2026-06-01');
         $dateEndInput   = $request->get('date_end', '2026-06-30');
-        $filters        = $request->get('filters', []);
+        
+        // 🌟 接收畫面的過濾條件陣列 (預設為空陣列)
+        $filters = $request->get('filters', []);
 
         // 轉換為資料庫格式 (YYYYMMDD)
         $start = Carbon::parse($dateStartInput)->format('Ymd');
         $end   = Carbon::parse($dateEndInput)->format('Ymd');
         $yymm  = Carbon::parse($dateStartInput)->format('Ym');
 
-        // 2. 🌟 建立內層核心加總的子查詢 (Subquery)
+        // 2. 建立內層核心加總的子查詢 (Subquery)
         $subquery = DB::connection('oracle')->table('nh_seihin_ukeharai s')
             ->select([
                 DB::raw('TRIM(s.seihin) AS seihin'),
@@ -37,8 +39,8 @@ class StockController extends Controller
             ->where('s.ukeharai_ymd', '<=', $end)
             ->groupBy(DB::raw('TRIM(s.seihin)'));
 
-        // 3. 🌟 主查詢：利用 fromSub 整合子查詢並進行外部關聯
-        $dbData = DB::connection('oracle')->query()
+        // 3. 建立主查詢實例
+        $mainQuery = DB::connection('oracle')->query()
             ->select([
                 'yoto.yoto_name AS yoto_name',
                 'summary.seihin AS seihin',
@@ -48,17 +50,37 @@ class StockController extends Controller
                 'summary.latest_ukeharai_ymd AS ukeharai_ymd'
             ])
             ->fromSub($subquery, 'summary')
-            // 使用閉包與 DB::raw 來精準處理帶有 TRIM 的不規則 JOIN 條件
-            ->leftJoin('nh_kikakusho_mst as kikaku', function ($join) {
+            ->leftJoin('nh_kikakusho_mst kikaku', function ($join) {
                 $join->on('summary.seihin', '=', DB::raw('TRIM(kikaku.seihin)'));
             })
-            ->leftJoin('nh_yoto_mst as yoto', function ($join) {
+            ->leftJoin('nh_yoto_mst yoto', function ($join) {
                 $join->on(DB::raw('TRIM(kikaku.yoto)'), '=', DB::raw('TRIM(yoto.yoto_cd)'));
             })
-            ->where('summary.total_maisu', '<>', 0)
-            ->orderBy('summary.seihin', 'asc')
-            ->get()
-            ->all(); // 轉成陣列以維持與原系統架構的相容性
+            ->where('summary.total_maisu', '<>', 0);
+
+        // ==========================================
+        // 🌟 核心新增：動態組合前端傳來的過濾條件
+        // ==========================================
+        
+        // [用途]：下拉選單通常是精確比對
+        if (!empty($filters['yoto'])) {
+            $mainQuery->where(DB::raw('TRIM(yoto.yoto_name)'), '=', trim($filters['yoto']));
+        }
+
+        // [製品]：文字輸入框，使用 LIKE 模糊搜尋，並強制轉大寫比對避免大小寫搜不到
+        if (!empty($filters['seihin'])) {
+            $mainQuery->where(DB::raw('UPPER(summary.seihin)'), 'LIKE', '%' . strtoupper(trim($filters['seihin'])) . '%');
+        }
+
+        // [客戶別]：文字輸入框，同樣使用 LIKE 模糊搜尋與轉大寫
+        if (!empty($filters['customer'])) {
+            $mainQuery->where(DB::raw('UPPER(kikaku.shoshu_cd)'), 'LIKE', '%' . strtoupper(trim($filters['customer'])) . '%');
+        }
+
+        // ==========================================
+        
+        // 執行查詢並排序
+        $dbData = $mainQuery->orderBy('summary.seihin', 'asc')->get()->all();
 
         // 4. 用 PHP 幫每一筆資料動態塞入 nengetsu (年月) 欄位
         foreach ($dbData as $row) {
@@ -78,10 +100,11 @@ class StockController extends Controller
             $collection->count(), 
             $perPage, 
             $currentPage, 
-            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+            // 🌟 確保分頁的網址會帶上過濾條件，換頁時條件才不會消失
+            ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
         );
 
-        // 7. 用途下拉選單的假選項
+        // 7. 用途下拉選單 (建議未來也可以改成從 DB::connection('oracle')->table('nh_yoto_mst')->pluck('yoto_name') 動態抓取)
         $yotoOptions = ['TFT', 'OLED', 'STN'];
 
         // 8. 回傳至 stock.blade.php
