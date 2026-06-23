@@ -104,15 +104,31 @@ class StockController extends Controller
             ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
         );
 
-        // 7. 🌟 動態抓取用途主檔的 yoto_name 作為下拉選單選項
+        // 7. 🌟 動態抓取「該日期區間內」實際有庫存紀錄的用途名稱
         $yotoOptions = DB::connection('oracle')
-            ->table('nh_yoto_mst')
-            ->select(DB::raw('TRIM(yoto_name) as yoto_name')) // 確保選項沒有隱藏空白
-            ->whereNotNull('yoto_name') // 排除空值
-            ->distinct() // 確保選項不重複
-            ->orderBy('yoto_name', 'asc') // 依英文字母/筆畫排序
-            ->pluck('yoto_name');
-    
+            ->table('nh_seihin_ukeharai s') // 從每日庫存表出發
+            // 關聯規格書取得 yoto_cd
+            ->leftJoin('nh_kikakusho_mst kikaku', function ($join) {
+                $join->on(DB::raw('TRIM(s.seihin)'), '=', DB::raw('TRIM(kikaku.seihin)'));
+            })
+            // 關聯用途主檔取得 yoto_name
+            ->leftJoin('nh_yoto_mst yoto', function ($join) {
+                $join->on(DB::raw('TRIM(kikaku.yoto)'), '=', DB::raw('TRIM(yoto.yoto_cd)'));
+            })
+            // 套用與主查詢一模一樣的過濾條件與「日期區間」
+            ->whereIn('s.kotei_cd', ['11','15','17','19','20','22','S01','S02','S03'])
+            ->where(DB::raw('TRIM(s.country_cd)'), 'TNHT')
+            ->where('s.ukeharai_ymd', '>=', $start)
+            ->where('s.ukeharai_ymd', '<=', $end)
+            // 確保有抓到名稱才列入選項
+            ->whereNotNull('yoto.yoto_name') 
+            // 只抓取不重複的用途名稱
+            ->select(DB::raw('TRIM(yoto.yoto_name) as yoto_name'))
+            ->distinct()
+            ->orderBy('yoto_name', 'asc')
+            ->pluck('yoto_name')
+            ->toArray(); // 轉回純陣列供 Blade 使用
+            
         // 8. 回傳至 stock.blade.php
         return view('stock', [
             'stocks'      => $stocks,
