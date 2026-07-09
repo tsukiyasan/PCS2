@@ -96,7 +96,7 @@ class StockController extends Controller
             '2SMFB0D0AAAU' => ['vendor' => 'AUO',    'size' => '1100*1300'],
             '2SMAB0D0BQAU' => ['vendor' => 'AUO',    'size' => '1100*1300'],
             '2SHA6888BQCM' => ['vendor' => 'GP',     'size' => '680*880'],
-            '2SGAB0D0BQS' => ['vendor' => 'GP',     'size' => '680*880'],
+            '2SMA6888BQCM' => ['vendor' => 'GP',     'size' => '680*880'],
             '2SHWB0D0EFBE' => ['vendor' => 'BOE',    'size' => '1100*1300'],
             '2SHEB0D0EABE' => ['vendor' => 'BOE',    'size' => '1100*1300'],
             '2SMAB0C5EADW' => ['vendor' => 'DWFC',   'size' => '1100x1250'],
