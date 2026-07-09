@@ -11,7 +11,7 @@ class StockController extends Controller
 {
     public function index(Request $request)
     {
-// 1. 取得畫面上選擇的篩選條件與日期
+        // 1. 取得畫面上選擇的篩選條件與日期
         // 如果使用者沒輸入，預設為「當月第一天」與「當月最後一天」(格式：YYYY-MM-DD)
         $dateStartInput = $request->get('date_start', now()->startOfMonth()->format('Y-m-d'));
         $dateEndInput   = $request->get('date_end', now()->endOfMonth()->format('Y-m-d'));      
@@ -83,9 +83,39 @@ class StockController extends Controller
         // 執行查詢並排序
         $dbData = $mainQuery->orderBy('summary.seihin', 'asc')->get()->all();
 
-        // 4. 用 PHP 幫每一筆資料動態塞入 nengetsu (年月) 欄位
+        // ==========================================
+        // 🌟 核心新增：建立廠商與吋法的對照字典
+        // ==========================================
+        $productMapping = [
+            '2SHFB0D0AACM' => ['vendor' => 'INX', 'size' => '1100*1300'],
+            '2SGFB0D0AACM' => ['vendor' => 'INX', 'size' => '1100*1300'],
+            '2SHAB0D0BQS'  => ['vendor' => 'INX', 'size' => '1100*1300'],
+            '2SGAB0D0BQSA' => ['vendor' => 'INX', 'size' => '1100*1300'],
+            '2SHFB0D0AAAU' => ['vendor' => 'AUO', 'size' => '1100*1300'],
+            '2SHAB0D0BQAU' => ['vendor' => 'AUO', 'size' => '1100*1300'],
+            '2SMFB0D0AAAU' => ['vendor' => 'AUO', 'size' => '1100*1300'],
+            '2SMAB0D0BQAU' => ['vendor' => 'AUO', 'size' => '1100*1300'],
+            '2SHA6888BQCM' => ['vendor' => 'GP',  'size' => '680*880'],
+            '2SHWB0D0EFBE' => ['vendor' => 'BOE', 'size' => '1100*1300'],
+            '2SHEB0D0EABED' => ['vendor' => 'BOE', 'size' => '1100*1300'],
+            '2SMAB0C5EADW' => ['vendor' => 'DWFC','size' => '1100x1250'],
+            '2SHFB0D0AAIO' => ['vendor' => 'IVO', 'size' => '1100*1300'],
+            '2SMAB0D0BQIO' => ['vendor' => 'IVO', 'size' => '1100*1300'],
+            '2SGFB0D0AAIA' => ['vendor' => 'INESA', 'size' => '1100*1300'],
+            '2SGAB0D0BQIA' => ['vendor' => 'INESA', 'size' => '1100*1300'],
+            '2SGFB0D0AALA' => ['vendor' => 'LAIBAO', 'size' => '1100*1300'],
+            '2SGAB0D0BQLA' => ['vendor' => 'LAIBAO', 'size' => '1100*1300'],
+            '2SHFC0D0CRHS' => ['vendor' => 'HSD', 'size' => '1200*1300'],
+        ];
+
+        // 4. 用 PHP 幫每一筆資料動態塞入 nengetsu (年月)、廠商、吋法欄位
         foreach ($dbData as $row) {
             $row->nengetsu = $yymm;
+
+            // 查表對照：若製品代碼吻合，就注入廠商與吋法，否則預設顯示 '-'
+            $mappedData = $productMapping[$row->seihin] ?? ['vendor' => '-', 'size' => '-'];
+            $row->vendor = $mappedData['vendor'];
+            $row->size   = $mappedData['size'];
         }
 
         // 5. 將資料轉為 Collection 物件

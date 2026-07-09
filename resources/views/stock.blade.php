@@ -69,7 +69,7 @@
                             <td class="px-6 py-3 whitespace-nowrap text-blue-700 font-semibold">{{ $row->seihin }}</td>
                             
                             {{-- 客戶別 --}}
-                            <td class="px-6 py-3 whitespace-nowrap text-gray-700">{{ $row->customer_name }}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-gray-700">{{ $row->vendor }}</td>
                             
                             {{-- 捆包日 --}}
                             <td class="px-6 py-3 whitespace-nowrap font-mono text-xs text-gray-500">{{ $row->konbao_ymd }}</td>
