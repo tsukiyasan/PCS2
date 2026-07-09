@@ -87,27 +87,27 @@ class StockController extends Controller
         // 🌟 核心新增：建立廠商與吋法的對照字典
         // ==========================================
         $productMapping = [
-            '2SHFB0D0AACM' => ['vendor' => 'INX', 'size' => '1100*1300'],
-            '2SGFB0D0AACM' => ['vendor' => 'INX', 'size' => '1100*1300'],
-            '2SHAB0D0BQS'  => ['vendor' => 'INX', 'size' => '1100*1300'],
-            '2SGAB0D0BQSA' => ['vendor' => 'INX', 'size' => '1100*1300'],
-            '2SHFB0D0AAAU' => ['vendor' => 'AUO', 'size' => '1100*1300'],
-            '2SHAB0D0BQAU' => ['vendor' => 'AUO', 'size' => '1100*1300'],
-            '2SMFB0D0AAAU' => ['vendor' => 'AUO', 'size' => '1100*1300'],
-            '2SMAB0D0BQAU' => ['vendor' => 'AUO', 'size' => '1100*1300'],
-            '2SHA6888BQCM' => ['vendor' => 'GP',  'size' => '680*880'],
-            '2SHWB0D0EFBE' => ['vendor' => 'BOE', 'size' => '1100*1300'],
-            '2SHEB0D0EABED' => ['vendor' => 'BOE', 'size' => '1100*1300'],
-            '2SMAB0C5EADW' => ['vendor' => 'DWFC','size' => '1100x1250'],
-            '2SHFB0D0AAIO' => ['vendor' => 'IVO', 'size' => '1100*1300'],
-            '2SMAB0D0BQIO' => ['vendor' => 'IVO', 'size' => '1100*1300'],
-            '2SGFB0D0AAIA' => ['vendor' => 'INESA', 'size' => '1100*1300'],
-            '2SGAB0D0BQIA' => ['vendor' => 'INESA', 'size' => '1100*1300'],
+            '2SHFB0D0AACM' => ['vendor' => 'INX',    'size' => '1100*1300'],
+            '2SGFB0D0AACM' => ['vendor' => 'INX',    'size' => '1100*1300'],
+            '2SHAB0D0BQS'  => ['vendor' => 'INX',    'size' => '1100*1300'],
+            '2SGAB0D0BQS'  => ['vendor' => 'INX',    'size' => '1100*1300'],
+            '2SHFB0D0AAAU' => ['vendor' => 'AUO',    'size' => '1100*1300'],
+            '2SHAB0D0BQAU' => ['vendor' => 'AUO',    'size' => '1100*1300'],
+            '2SMFB0D0AAAU' => ['vendor' => 'AUO',    'size' => '1100*1300'],
+            '2SMAB0D0BQAU' => ['vendor' => 'AUO',    'size' => '1100*1300'],
+            '2SHA6888BQCM' => ['vendor' => 'GP',     'size' => '680*880'],
+            '2SGAB0D0BQS' => ['vendor' => 'GP',     'size' => '680*880'],
+            '2SHWB0D0EFBE' => ['vendor' => 'BOE',    'size' => '1100*1300'],
+            '2SHEB0D0EABE' => ['vendor' => 'BOE',    'size' => '1100*1300'],
+            '2SMAB0C5EADW' => ['vendor' => 'DWFC',   'size' => '1100x1250'],
+            '2SHFB0D0AAIO' => ['vendor' => 'IVO',    'size' => '1100*1300'],
+            '2SMAB0D0BQIO' => ['vendor' => 'IVO',    'size' => '1100*1300'],
+            '2SGFB0D0AAIA' => ['vendor' => 'INESA',  'size' => '1100*1300'],
+            '2SGAB0D0BQIA' => ['vendor' => 'INESA',  'size' => '1100*1300'],
             '2SGFB0D0AALA' => ['vendor' => 'LAIBAO', 'size' => '1100*1300'],
             '2SGAB0D0BQLA' => ['vendor' => 'LAIBAO', 'size' => '1100*1300'],
-            '2SHFC0D0CRHS' => ['vendor' => 'HSD', 'size' => '1200*1300'],
+            '2SHFC0D0CRHS' => ['vendor' => 'HSD',    'size' => '1200*1300'],
         ];
-
         // 4. 用 PHP 幫每一筆資料動態塞入 nengetsu (年月)、廠商、吋法欄位
         foreach ($dbData as $row) {
             $row->nengetsu = $yymm;
