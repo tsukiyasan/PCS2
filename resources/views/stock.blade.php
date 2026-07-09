@@ -24,13 +24,12 @@
             </a>
         </div>
 
-        {{-- 庫存表格區塊：加入枚數與最新受拂日 --}}
+        {{-- 庫存表格區塊 --}}
         <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-200">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        {{-- 🌟 修正點 1：表頭加入「枚數」與「最新受拂日」 --}}
-                        @foreach(['年月', '用途', '製品', '客戶別', '捆包日', '枚數'] as $head)
+                        @foreach(['年月', '廠商', '吋法', '用途', '製品', '客戶別', '捆包日', '枚數', '最新受拂日'] as $head)
                             <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 {{ $head }}
                             </th>
@@ -40,6 +39,20 @@
                     {{-- 關鍵字過濾列 --}}
                     <tr class="bg-blue-50/50">
                         <td class="p-2"></td> {{-- 年月 --}}
+                        
+                        {{-- 🌟 修正點 1：將原本客戶搜尋，移到這裡變成「廠商別」下拉式選單 --}}
+                        <td class="p-2">
+                            <select name="filters[vendor]" class="filter-input bg-white cursor-pointer" onchange="this.form.submit()">
+                                <option value="">全部廠商</option>
+                                @foreach($vendorOptions ?? [] as $option)
+                                    <option value="{{ $option }}" {{ ($filters['vendor'] ?? '') == $option ? 'selected' : '' }}>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        
+                        <td class="p-2"></td> {{-- 吋法 --}}
+                        
+                        {{-- 用途下拉式選單 --}}
                         <td class="p-2">
                             <select name="filters[yoto]" class="filter-input bg-white cursor-pointer" onchange="this.form.submit()">
                                 <option value="">全部用途</option>
@@ -48,11 +61,14 @@
                                 @endforeach
                             </select>
                         </td>
+                        
+                        {{-- 製品與客戶輸入框過濾 --}}
                         <td class="p-2"><input type="text" name="filters[seihin]" value="{{ $filters['seihin'] ?? '' }}" class="filter-input" placeholder="搜尋製品..."></td>
                         <td class="p-2"><input type="text" name="filters[customer]" value="{{ $filters['customer'] ?? '' }}" class="filter-input" placeholder="搜尋客戶..."></td>
+                        
                         <td class="p-2"></td> {{-- 捆包日 --}}
-                        {{-- 🌟 修正點 2：補上過濾列對應的空白 td，保持版面不跑版 --}}
                         <td class="p-2"></td> {{-- 枚數 --}}
+                        <td class="p-2"></td> {{-- 最新受拂日 --}}
                     </tr>
                 </thead>
 
@@ -62,6 +78,12 @@
                             {{-- 年月 --}}
                             <td class="px-6 py-3 whitespace-nowrap font-mono">{{ $row->nengetsu }}</td>
                             
+                            {{-- 廠商 --}}
+                            <td class="px-6 py-3 whitespace-nowrap font-semibold text-purple-700">{{ $row->vendor }}</td>
+                            
+                            {{-- 吋法 --}}
+                            <td class="px-6 py-3 whitespace-nowrap text-gray-700">{{ $row->size }}</td>
+                            
                             {{-- 用途 --}}
                             <td class="px-6 py-3 whitespace-nowrap font-medium text-gray-900">{{ $row->yoto_name }}</td>
                             
@@ -69,21 +91,23 @@
                             <td class="px-6 py-3 whitespace-nowrap text-blue-700 font-semibold">{{ $row->seihin }}</td>
                             
                             {{-- 客戶別 --}}
-                            <td class="px-6 py-3 whitespace-nowrap text-gray-700">{{ $row->vendor }}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-gray-700">{{ $row->customer_name }}</td>
                             
                             {{-- 捆包日 --}}
                             <td class="px-6 py-3 whitespace-nowrap font-mono text-xs text-gray-500">{{ $row->konbao_ymd }}</td>
 
-                            {{-- 🌟 修正點 3：綁定枚數資料 (加上右靠齊與顏色標示) --}}
+                            {{-- 枚數 --}}
                             <td class="px-6 py-3 whitespace-nowrap font-semibold text-emerald-600">
                                 {{ number_format($row->maisu) }}
                             </td>
 
+                            {{-- 最新受拂日 --}}
+                            <td class="px-6 py-3 whitespace-nowrap font-mono text-xs text-gray-500">{{ $row->ukeharai_ymd }}</td>
                         </tr>
                     @empty
                         <tr>
-                            {{-- 🌟 修正點 5：欄位變多了，colspan 也要從 5 改成 6 --}}
-                            <td colspan="6" class="px-6 py-20 text-center">
+                            {{-- 🌟 修正點 2：總共 9 個欄位，colspan 設為 9 --}}
+                            <td colspan="9" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center opacity-40">
                                     <i class="fa-solid fa-boxes-stacked text-4xl mb-2"></i>
                                     <span class="text-lg">目前無庫存資料</span>

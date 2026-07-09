@@ -59,33 +59,23 @@ class StockController extends Controller
             })
             ->where('summary.total_maisu', '<>', 0);
 
-        // ==========================================
-        // 🌟 核心新增：動態組合前端傳來的過濾條件
-        // ==========================================
-        
-        // [用途]：下拉選單通常是精確比對
+        // 動態組合前端傳來的過濾條件
         if (!empty($filters['yoto'])) {
             $mainQuery->where(DB::raw('TRIM(yoto.yoto_name)'), '=', trim($filters['yoto']));
         }
 
-        // [製品]：文字輸入框，使用 LIKE 模糊搜尋，並強制轉大寫比對避免大小寫搜不到
         if (!empty($filters['seihin'])) {
             $mainQuery->where(DB::raw('UPPER(summary.seihin)'), 'LIKE', '%' . strtoupper(trim($filters['seihin'])) . '%');
         }
 
-        // [客戶別]：文字輸入框，同樣使用 LIKE 模糊搜尋與轉大寫
         if (!empty($filters['customer'])) {
             $mainQuery->where(DB::raw('UPPER(kikaku.shoshu_cd)'), 'LIKE', '%' . strtoupper(trim($filters['customer'])) . '%');
         }
 
-        // ==========================================
-        
         // 執行查詢並排序
         $dbData = $mainQuery->orderBy('summary.seihin', 'asc')->get()->all();
 
-        // ==========================================
-        // 🌟 核心新增：建立廠商與吋法的對照字典
-        // ==========================================
+        // 🌟 核心保留：建立廠商與吋法的對照字典（完全保留你最新更新的版本）
         $productMapping = [
             '2SHFB0D0AACM' => ['vendor' => 'INX',    'size' => '1100*1300'],
             '2SGFB0D0AACM' => ['vendor' => 'INX',    'size' => '1100*1300'],
@@ -109,14 +99,35 @@ class StockController extends Controller
             '2SHFC0D0CRHS' => ['vendor' => 'HSD',    'size' => '1200*1300'],
             '2SMEB0D0EABE' => ['vendor' => 'BOE',    'size' => '1100*1300'],
         ];
+
         // 4. 用 PHP 幫每一筆資料動態塞入 nengetsu (年月)、廠商、吋法欄位
         foreach ($dbData as $row) {
             $row->nengetsu = $yymm;
 
+            // 買保險：多加一層 trim() 確保品名後面沒有隱藏空白導致對照失敗
+            $seihinKey = trim($row->seihin);
+
             // 查表對照：若製品代碼吻合，就注入廠商與吋法，否則預設顯示 '-'
-            $mappedData = $productMapping[$row->seihin] ?? ['vendor' => '-', 'size' => '-'];
+            $mappedData = $productMapping[$seihinKey] ?? ['vendor' => '-', 'size' => '-'];
             $row->vendor = $mappedData['vendor'];
             $row->size   = $mappedData['size'];
+        }
+
+        // 🌟 核心新增：動態收集當前查詢區間內「真正有資料」的廠商，拿來當前端選單的選項
+        $allVendorOptions = [];
+        foreach ($dbData as $item) {
+            if (!empty($item->vendor) && $item->vendor !== '-') {
+                $allVendorOptions[] = $item->vendor;
+            }
+        }
+        $vendorOptions = array_values(array_unique($allVendorOptions));
+        sort($vendorOptions); // 選項依 A-Z 字母排序
+
+        // 🌟 核心新增：如果前端有選擇特定「廠商別」下拉選單，在 PHP 層級進行過濾
+        if (!empty($filters['vendor'])) {
+            $dbData = array_filter($dbData, function ($row) use ($filters) {
+                return trim($row->vendor) === trim($filters['vendor']);
+            });
         }
 
         // 5. 將資料轉為 Collection 物件
@@ -132,11 +143,10 @@ class StockController extends Controller
             $collection->count(), 
             $perPage, 
             $currentPage, 
-            // 🌟 確保分頁的網址會帶上過濾條件，換頁時條件才不會消失
             ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
         );
 
-        // 7. 🌟 動態抓取「該日期區間內」實際有庫存紀錄的用途名稱
+        // 7. 動態抓取「該日期區間內」實際有庫存紀錄的用途名稱
         $yotoOptions = DB::connection('oracle')
             ->table('nh_seihin_ukeharai s') // 從每日庫存表出發
             // 關聯規格書取得 yoto_cd
@@ -163,11 +173,12 @@ class StockController extends Controller
 
         // 8. 回傳至 stock.blade.php
         return view('stock', [
-            'stocks'      => $stocks,
-            'yotoOptions' => $yotoOptions,
-            'dateStart'   => $dateStartInput,
-            'dateEnd'     => $dateEndInput,
-            'filters'     => $filters,
+            'stocks'        => $stocks,
+            'yotoOptions'   => $yotoOptions,
+            'vendorOptions' => $vendorOptions, // 🌟 核心新增：傳遞動態廠商名單給前端選單
+            'dateStart'     => $dateStartInput,
+            'dateEnd'       => $dateEndInput,
+            'filters'       => $filters,
         ]);
     }
 }
