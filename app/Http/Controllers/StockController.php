@@ -107,6 +107,7 @@ class StockController extends Controller
             '2SGFB0D0AALA' => ['vendor' => 'LAIBAO', 'size' => '1100*1300'],
             '2SGAB0D0BQLA' => ['vendor' => 'LAIBAO', 'size' => '1100*1300'],
             '2SHFC0D0CRHS' => ['vendor' => 'HSD',    'size' => '1200*1300'],
+            '2SMEB0D0EABE' => ['vendor' => 'BOE',    'size' => '1100*1300'],
         ];
         // 4. 用 PHP 幫每一筆資料動態塞入 nengetsu (年月)、廠商、吋法欄位
         foreach ($dbData as $row) {
