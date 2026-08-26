@@ -11,8 +11,11 @@ class StockController extends Controller
 {
     public function index(Request $request)
     {
+        // ============================================================
         // 1. 取得畫面上選擇的篩選條件與日期
-        // 如果使用者沒輸入，預設為「當月第一天」與「當月最後一天」(格式：YYYY-MM-DD)
+        // ============================================================
+
+        // 如果使用者沒輸入，預設為當月第一天與當月最後一天
         $dateStartInput = $request->get(
             'date_start',
             now()->startOfMonth()->format('Y-m-d')
@@ -26,78 +29,77 @@ class StockController extends Controller
         // 接收畫面的過濾條件陣列
         $filters = $request->get('filters', []);
 
-        // 轉換為資料庫格式 (YYYYMMDD)
+        // ============================================================
+        // ★ 修改處 1
+        // 日期轉換
+        // ============================================================
+
+        // 轉換為 Oracle 資料庫使用的 YYYYMMDD
+        //
+        // 例如：
+        // 2026-08-31
+        // ↓
+        // 20260831
+        //
         $start = Carbon::parse($dateStartInput)->format('Ymd');
         $end   = Carbon::parse($dateEndInput)->format('Ymd');
-        $yymm  = Carbon::parse($dateEndInput)->format('Ym');
+
+        // 畫面顯示年月，例如 202608
+        $yymm = Carbon::parse($dateEndInput)->format('Ym');
 
 
         // ============================================================
-        // 2. 建立內層核心加總的子查詢 (Subquery)
+        // 2. 建立內層核心加總的子查詢
         // ============================================================
 
         $subquery = DB::connection('oracle')
             ->table('nh_seihin_ukeharai s')
             ->select([
 
-                // ----------------------------------------------------
-                // ★ 原本：
-                // DB::raw('TRIM(s.seihin) AS seihin')
-                //
-                // 這裡維持不變
-                // ----------------------------------------------------
-                DB::raw('TRIM(s.seihin) AS seihin'),
+                // ====================================================
+                // 製品
+                // ====================================================
+
+                DB::raw(
+                    'TRIM(s.seihin) AS seihin'
+                ),
 
 
-                // ----------------------------------------------------
-                // ★ 原本：
-                // MAX(s.ukeharai_ymd) AS latest_ukeharai_ymd
-                //
-                // 維持不變。
-                // 代表查詢區間內該產品最後的受払日期。
-                // ----------------------------------------------------
+                // ====================================================
+                // 查詢日期區間內最後的受払日期
+                // ====================================================
+
                 DB::raw(
                     'MAX(s.ukeharai_ymd) AS latest_ukeharai_ymd'
                 ),
 
 
                 // ====================================================
-                // ★ 修改 1：konbao_ymd
+                // ★ 修改處 2：konbao_ymd
                 // ====================================================
                 //
-                // 【原本】
+                // konbao_ymd 的規則：
+                //
+                // 「找最早的 konpo_konpo_ymd」
+                //
+                // 原本：
+                //
+                // MIN(SUBSTR(s.konpo_konpo_ymd, 1, 8))
+                //
+                // 現在增加 TRIM：
                 //
                 // MIN(
-                //     SUBSTR(s.konpo_konpo_ymd, 1, 8)
-                // ) AS min_konpo_ymd
+                //     TRIM(
+                //         SUBSTR(
+                //             s.konpo_konpo_ymd,
+                //             1,
+                //             8
+                //         )
+                //     )
+                // )
                 //
-                // 問題：
-                // 同一個 seihin 在整個日期區間內可能有很多筆
-                // konpo_konpo_ymd。
-                //
-                // MIN() 只會取得最早的包裝日期。
-                //
-                // 例如：
-                //
-                // ukeharai_ymd   konpo_konpo_ymd
-                // --------------------------------
-                // 20260820       20260818
-                // 20260825       20260823
-                // 20260831       20260830
-                //
-                // MIN() 最後會得到：
-                // 20260818
-                //
-                // 但我們希望得到 20260831 最新資料對應的：
-                // 20260830
-                //
-                // 因此改成 Oracle：
-                //
-                // MAX(...) KEEP (DENSE_RANK LAST ORDER BY ...)
-                //
-                // 意思是：
-                // 先找最後一筆受払資料，
-                // 再從那一筆取得 konpo_konpo_ymd。
+                // 這樣可以避免 konpo_konpo_ymd
+                // 前後存在空白造成問題。
                 //
                 // ====================================================
 
@@ -110,16 +112,9 @@ class StockController extends Controller
                                 8
                             )
                         )
-                    )
-                    KEEP (
-                        DENSE_RANK LAST
-                        ORDER BY
-                            s.ukeharai_ymd,
-                            s.upd_date,
-                            s.upd_time,
-                            s.system_date
-                    ) AS konbao_ymd
+                    ) AS min_konpo_ymd
                 "),
+
 
                 // ====================================================
                 // 庫存數量
@@ -133,14 +128,11 @@ class StockController extends Controller
                         + s.furi_ukeire_su
                         + s.hason_ukeire_su
                         + s.gaichu_ukeire_su
-
                         - s.ryohin_harai_su
                         - s.hason_harai_su
                         - s.furi_harai_su
                         - s.hoju_harai_su
-
                         + s.hosei_su
-
                         - s.daino_su
                         - s.zaiso_su
                         - s.sample_su
@@ -151,6 +143,7 @@ class StockController extends Controller
             // ========================================================
             // 製程條件
             // ========================================================
+
             ->whereIn('s.kotei_cd', [
                 '11',
                 '15',
@@ -166,31 +159,34 @@ class StockController extends Controller
             // ========================================================
             // 國別
             // ========================================================
+
             ->where(
                 DB::raw('TRIM(s.country_cd)'),
                 'TNHT'
             )
 
             // ========================================================
-            // 日期範圍
+            // 日期條件
             // ========================================================
             //
-            // 例如：
+            // 例如查：
             //
-            // date_start = 2026-08-01
-            // date_end   = 2026-08-31
+            // 2026-08-31 ～ 2026-08-31
             //
             // 會變成：
             //
-            // s.ukeharai_ymd >= '20260801'
+            // s.ukeharai_ymd >= '20260831'
+            // AND
             // s.ukeharai_ymd <= '20260831'
             //
             // ========================================================
+
             ->where(
                 's.ukeharai_ymd',
                 '>=',
                 $start
             )
+
             ->where(
                 's.ukeharai_ymd',
                 '<=',
@@ -198,15 +194,9 @@ class StockController extends Controller
             )
 
             // ========================================================
-            // ★ 注意
-            //
-            // 目前仍然維持你原本的設計：
-            //
-            // 一個 seihin = 一筆結果
-            //
-            // 所以 konbao_ymd 會代表：
-            // 「該產品最後一筆受払資料的包裝日期」
+            // 一個製品一筆
             // ========================================================
+
             ->groupBy(
                 DB::raw('TRIM(s.seihin)')
             );
@@ -218,38 +208,40 @@ class StockController extends Controller
 
         $mainQuery = DB::connection('oracle')
             ->query()
+
             ->select([
 
+                // 用途名稱
                 'yoto.yoto_name AS yoto_name',
 
+                // 製品
                 'summary.seihin AS seihin',
 
+                // Customer
                 'kikaku.shoshu_cd AS customer_name',
 
                 // ====================================================
-                // ★ 修改 2
+                // ★ 修改處 3
                 // ====================================================
                 //
-                // 【原本】
+                // 從 Subquery 取得最早 konpo_konpo_ymd
+                //
+                // Subquery：
+                //
+                // MIN(...) AS min_konpo_ymd
+                //
+                // Main Query：
                 //
                 // summary.min_konpo_ymd AS konbao_ymd
                 //
-                // 【現在】
-                //
-                // summary.konbao_ymd AS konbao_ymd
-                //
-                // 因為上面的 Subquery 已經改成：
-                //
-                // ... AS konbao_ymd
-                //
-                // 所以這裡直接取它。
-                //
                 // ====================================================
 
-                'summary.konbao_ymd AS konbao_ymd',
+                'summary.min_konpo_ymd AS konbao_ymd',
 
+                // 庫存數量
                 'summary.total_maisu AS maisu',
 
+                // 最新受払日期
                 'summary.latest_ukeharai_ymd AS ukeharai_ymd'
             ])
 
@@ -258,8 +250,9 @@ class StockController extends Controller
                 'summary'
             )
 
+
             // ========================================================
-            // 規格書 Master
+            // 關聯規格書
             // ========================================================
 
             ->leftJoin(
@@ -269,13 +262,16 @@ class StockController extends Controller
                     $join->on(
                         'summary.seihin',
                         '=',
-                        DB::raw('TRIM(kikaku.seihin)')
+                        DB::raw(
+                            'TRIM(kikaku.seihin)'
+                        )
                     );
                 }
             )
 
+
             // ========================================================
-            // 用途 Master
+            // 關聯用途主檔
             // ========================================================
 
             ->leftJoin(
@@ -283,15 +279,20 @@ class StockController extends Controller
                 function ($join) {
 
                     $join->on(
-                        DB::raw('TRIM(kikaku.yoto)'),
+                        DB::raw(
+                            'TRIM(kikaku.yoto)'
+                        ),
                         '=',
-                        DB::raw('TRIM(yoto.yoto_cd)')
+                        DB::raw(
+                            'TRIM(yoto.yoto_cd)'
+                        )
                     );
                 }
             )
 
+
             // ========================================================
-            // 排除庫存數量 = 0
+            // 只顯示庫存不等於 0
             // ========================================================
 
             ->where(
@@ -302,42 +303,67 @@ class StockController extends Controller
 
 
         // ============================================================
-        // 4. 動態組合前端傳來的過濾條件
+        // 4. 動態組合前端過濾條件
         // ============================================================
 
+        // ------------------------------------------------------------
         // 用途
+        // ------------------------------------------------------------
+
         if (!empty($filters['yoto'])) {
 
             $mainQuery->where(
-                DB::raw('TRIM(yoto.yoto_name)'),
+                DB::raw(
+                    'TRIM(yoto.yoto_name)'
+                ),
                 '=',
-                trim($filters['yoto'])
+                trim(
+                    $filters['yoto']
+                )
             );
         }
 
 
+        // ------------------------------------------------------------
         // 製品
+        // ------------------------------------------------------------
+
         if (!empty($filters['seihin'])) {
 
             $mainQuery->where(
-                DB::raw('UPPER(summary.seihin)'),
+                DB::raw(
+                    'UPPER(summary.seihin)'
+                ),
                 'LIKE',
-                '%' . strtoupper(
-                    trim($filters['seihin'])
-                ) . '%'
+                '%' .
+                strtoupper(
+                    trim(
+                        $filters['seihin']
+                    )
+                ) .
+                '%'
             );
         }
 
 
-        // 客戶
+        // ------------------------------------------------------------
+        // Customer
+        // ------------------------------------------------------------
+
         if (!empty($filters['customer'])) {
 
             $mainQuery->where(
-                DB::raw('UPPER(kikaku.shoshu_cd)'),
+                DB::raw(
+                    'UPPER(kikaku.shoshu_cd)'
+                ),
                 'LIKE',
-                '%' . strtoupper(
-                    trim($filters['customer'])
-                ) . '%'
+                '%' .
+                strtoupper(
+                    trim(
+                        $filters['customer']
+                    )
+                ) .
+                '%'
             );
         }
 
@@ -356,7 +382,7 @@ class StockController extends Controller
 
 
         // ============================================================
-        // 6. 廠商 / 尺寸對照表
+        // 6. 建立廠商與尺寸對照表
         // ============================================================
 
         $productMapping = [
@@ -493,7 +519,7 @@ class StockController extends Controller
 
 
         // ============================================================
-        // 8. 動態取得廠商選項
+        // 8. 動態收集廠商選項
         // ============================================================
 
         $allVendorOptions = [];
@@ -530,8 +556,11 @@ class StockController extends Controller
                 $dbData,
                 function ($row) use ($filters) {
 
-                    return trim($row->vendor)
-                        === trim($filters['vendor']);
+                    return trim(
+                        $row->vendor
+                    ) === trim(
+                        $filters['vendor']
+                    );
                 }
             );
         }
@@ -541,11 +570,13 @@ class StockController extends Controller
         // 10. Collection
         // ============================================================
 
-        $collection = collect($dbData);
+        $collection = collect(
+            $dbData
+        );
 
 
         // ============================================================
-        // 11. Pagination
+        // 11. 分頁
         // ============================================================
 
         $perPage = 15;
@@ -577,20 +608,26 @@ class StockController extends Controller
 
 
         // ============================================================
-        // 12. 動態抓取用途選項
+        // 12. 動態抓取日期區間內實際存在的用途
         // ============================================================
 
         $yotoOptions = DB::connection('oracle')
-            ->table('nh_seihin_ukeharai s')
+            ->table(
+                'nh_seihin_ukeharai s'
+            )
 
             ->leftJoin(
                 'nh_kikakusho_mst kikaku',
                 function ($join) {
 
                     $join->on(
-                        DB::raw('TRIM(s.seihin)'),
+                        DB::raw(
+                            'TRIM(s.seihin)'
+                        ),
                         '=',
-                        DB::raw('TRIM(kikaku.seihin)')
+                        DB::raw(
+                            'TRIM(kikaku.seihin)'
+                        )
                     );
                 }
             )
@@ -600,27 +637,36 @@ class StockController extends Controller
                 function ($join) {
 
                     $join->on(
-                        DB::raw('TRIM(kikaku.yoto)'),
+                        DB::raw(
+                            'TRIM(kikaku.yoto)'
+                        ),
                         '=',
-                        DB::raw('TRIM(yoto.yoto_cd)')
+                        DB::raw(
+                            'TRIM(yoto.yoto_cd)'
+                        )
                     );
                 }
             )
 
-            ->whereIn('s.kotei_cd', [
-                '11',
-                '15',
-                '17',
-                '19',
-                '20',
-                '22',
-                'S01',
-                'S02',
-                'S03'
-            ])
+            ->whereIn(
+                's.kotei_cd',
+                [
+                    '11',
+                    '15',
+                    '17',
+                    '19',
+                    '20',
+                    '22',
+                    'S01',
+                    'S02',
+                    'S03'
+                ]
+            )
 
             ->where(
-                DB::raw('TRIM(s.country_cd)'),
+                DB::raw(
+                    'TRIM(s.country_cd)'
+                ),
                 'TNHT'
             )
 
@@ -642,7 +688,7 @@ class StockController extends Controller
 
             ->select(
                 DB::raw(
-                    'TRIM(yoto.yoto_name) as yoto_name'
+                    'TRIM(yoto.yoto_name) AS yoto_name'
                 )
             )
 
