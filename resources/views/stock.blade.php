@@ -82,9 +82,24 @@
                             {{-- 製品 --}}
                             <td class="px-6 py-3 whitespace-nowrap text-blue-700 font-semibold">{{ $row->seihin }}</td>
                             
-                            {{-- 捆包日 --}}
-                            <td class="px-6 py-3 whitespace-nowrap font-mono text-xs text-gray-500">{{ $row->konbao_ymd }}</td>
+                            {{-- 捆包日（超過90天變紅色） --}}
+                            <td class="px-6 py-3 whitespace-nowrap font-mono text-xs">
+                                @php
+                                    // 假設 $row->konbao_ymd 格式為 YYYYMMDD 或 YYMMDD
+                                    // 這裡透過 Carbon 解析日期，若格式不同可自行調整
+                                    $konpoDate = \Carbon\Carbon::parse($row->konbao_ymd);
+                                    $daysDiff = $konpoDate->diffInDays(now());
+                                    $isOver90 = $daysDiff > 90;
+                                @endphp
 
+                                <span class="{{ $isOver90 ? 'text-red-600 font-bold' : 'text-gray-500' }}">
+                                    {{ $row->konbao_ymd }}
+                                    @if($isOver90)
+                                        <span class="text-[10px] bg-red-100 text-red-600 px-1 rounded ml-1">超90天</span>
+                                    @endif
+                                </span>
+                            </td>
+                            
                             <td class="px-6 py-3 whitespace-nowrap font-semibold text-emerald-600">
                                 {{ number_format($row->maisu) }}
                             </td>
