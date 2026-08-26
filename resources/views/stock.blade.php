@@ -41,6 +41,14 @@
                     <tr class="bg-blue-50/50">
                         <td class="p-2"></td> {{-- 年月 --}}
                         <td class="p-2">
+                            <select name="filters[vendor]" class="filter-input bg-white cursor-pointer" onchange="this.form.submit()">
+                                <option value="">全部客戶</option>
+                                @foreach($vendorOptions ?? [] as $option)
+                                    <option value="{{ $option }}" {{ ($filters['vendor'] ?? '') == $option ? 'selected' : '' }}>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td class="p-2">
                             <select name="filters[yoto]" class="filter-input bg-white cursor-pointer" onchange="this.form.submit()">
                                 <option value="">全部用途</option>
                                 @foreach($yotoOptions ?? [] as $option)
@@ -49,14 +57,6 @@
                             </select>
                         </td>
                         <td class="p-2"><input type="text" name="filters[seihin]" value="{{ $filters['seihin'] ?? '' }}" class="filter-input" placeholder="搜尋製品..."></td>
-                        <td class="p-2">
-                            <select name="filters[vendor]" class="filter-input bg-white cursor-pointer" onchange="this.form.submit()">
-                                <option value="">全部製品</option>
-                                @foreach($vendorOptions ?? [] as $option)
-                                    <option value="{{ $option }}" {{ ($filters['vendor'] ?? '') == $option ? 'selected' : '' }}>{{ $option }}</option>
-                                @endforeach
-                            </select>
-                        </td>
                         <td class="p-2"></td> {{-- 捆包日 --}}
                         {{-- 🌟 修正點 2：補上過濾列對應的空白 td，保持版面不跑版 --}}
                         <td class="p-2">
