@@ -102,7 +102,7 @@ class StockController extends Controller
                 // ====================================================
 
                 DB::raw("
-                    MAX(
+                    MIN(
                         TRIM(
                             SUBSTR(
                                 s.konpo_konpo_ymd,
