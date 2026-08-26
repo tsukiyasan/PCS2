@@ -83,7 +83,7 @@
                             <td class="px-6 py-3 whitespace-nowrap text-blue-700 font-semibold">{{ $row->seihin }}</td>
                             
                             {{-- 捆包日（超過90天變紅色） --}}
-                            <td class="px-6 py-3 whitespace-nowrap font-mono text-xs">
+                            <td class="px-6 py-3 whitespace-nowrap font-mono">
                                 @php
                                     // 原本的寫法會直接爆炸：$konpoDate = \Carbon\Carbon::parse($row->konbao_ymd);
                                     
@@ -96,7 +96,7 @@
                                 <span class="{{ $isOver90 ? 'text-red-600 font-bold' : 'text-gray-500' }}">
                                     {{ $row->konbao_ymd }}
                                     @if($isOver90)
-                                        <span class="text-[10px] bg-red-100 text-red-600 px-1 rounded ml-1">超90天</span>
+                                        <span class="text-[10px] bg-red-100 text-red-600 px-1 rounded ml-1">超過90天</span>
                                     @endif
                                 </span>
                             </td>
