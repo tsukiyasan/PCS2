@@ -30,7 +30,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         {{-- 🌟 修正點 1：表頭加入「枚數」與「最新受拂日」 --}}
-                        @foreach(['年月', '用途', '製品', '客戶別', '捆包日', '枚數'] as $head)
+                        @foreach(['年月', '客戶別', '用途', '製品', '捆包日', '枚數'] as $head)
                             <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 {{ $head }}
                             </th>
@@ -69,14 +69,14 @@
                             {{-- 年月 --}}
                             <td class="px-6 py-3 whitespace-nowrap font-mono">{{ $row->nengetsu }}</td>
                             
+                            {{-- 客戶別 --}}
+                            <td class="px-6 py-3 whitespace-nowrap text-gray-700">{{ $row->vendor }}</td>
+                            
                             {{-- 用途 --}}
                             <td class="px-6 py-3 whitespace-nowrap font-medium text-gray-900">{{ $row->yoto_name }}</td>
                             
                             {{-- 製品 --}}
                             <td class="px-6 py-3 whitespace-nowrap text-blue-700 font-semibold">{{ $row->seihin }}</td>
-                            
-                            {{-- 客戶別 --}}
-                            <td class="px-6 py-3 whitespace-nowrap text-gray-700">{{ $row->vendor }}</td>
                             
                             {{-- 捆包日 --}}
                             <td class="px-6 py-3 whitespace-nowrap font-mono text-xs text-gray-500">{{ $row->konbao_ymd }}</td>
