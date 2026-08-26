@@ -60,7 +60,7 @@
                         <td class="p-2"></td> {{-- 捆包日 --}}
                         {{-- 🌟 修正點 2：補上過濾列對應的空白 td，保持版面不跑版 --}}
                         <td class="p-2">
-                            <span class="text-emerald-600 font-bold text-sm">
+                            <span class="text-red-600 font-bold text-sm">
                                 {{ number_format($totalMaisu ?? 0) }}
                             </span>
                         </td> {{-- 枚數 --}}
