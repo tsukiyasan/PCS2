@@ -85,9 +85,10 @@
                             {{-- 捆包日（超過90天變紅色） --}}
                             <td class="px-6 py-3 whitespace-nowrap font-mono text-xs">
                                 @php
-                                    // 假設 $row->konbao_ymd 格式為 YYYYMMDD 或 YYMMDD
-                                    // 這裡透過 Carbon 解析日期，若格式不同可自行調整
-                                    $konpoDate = \Carbon\Carbon::parse($row->konbao_ymd);
+                                    // 原本的寫法會直接爆炸：$konpoDate = \Carbon\Carbon::parse($row->konbao_ymd);
+                                    
+                                    // 改成明確指定格式解析（假設 $row->konbao_ymd 是 '260816' 這種格式）
+                                    $konpoDate = \Carbon\Carbon::createFromFormat('ymd', $row->konbao_ymd);
                                     $daysDiff = $konpoDate->diffInDays(now());
                                     $isOver90 = $daysDiff > 90;
                                 @endphp
