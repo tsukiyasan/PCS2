@@ -690,6 +690,14 @@ class StockController extends Controller
 
 
         // ============================================================
+        // ★ 新增：計算目前查詢條件下「全部資料」的枚數總和
+        // ============================================================
+
+        $totalMaisu = $collection->sum(function ($row) {
+            return (float) $row->maisu;
+        });        
+
+        // ============================================================
         // 12. 手動製作 Paginator
         // ============================================================
 
@@ -854,26 +862,30 @@ class StockController extends Controller
         // ============================================================
 
         return view(
-            'stock',
-            [
-                'stocks' =>
-                    $stocks,
+        'stock',
+        [
+            'stocks' =>
+                $stocks,
 
-                'yotoOptions' =>
-                    $yotoOptions,
+            // ★ 新增：全部查詢結果的枚數總和
+            'totalMaisu' =>
+                $totalMaisu,
 
-                'vendorOptions' =>
-                    $vendorOptions,
+            'yotoOptions' =>
+                $yotoOptions,
 
-                'dateStart' =>
-                    $dateStartInput,
+            'vendorOptions' =>
+                $vendorOptions,
 
-                'dateEnd' =>
-                    $dateEndInput,
+            'dateStart' =>
+                $dateStartInput,
 
-                'filters' =>
-                    $filters,
-            ]
-        );
+            'dateEnd' =>
+                $dateEndInput,
+
+            'filters' =>
+                $filters,
+        ]
+    );
     }
 }
