@@ -860,11 +860,8 @@ class StockController extends Controller
             'vendorOptions' =>
                 $vendorOptions,
 
-            'dateStart' =>
-                $dateStartInput,
-
-            'dateEnd' =>
-                $dateEndInput,
+            'date_ym' =>
+                $date_ym,
 
             'filters' =>
                 $filters,
