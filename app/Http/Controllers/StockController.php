@@ -803,15 +803,10 @@ class StockController extends Controller
 
             ->where(
                 's.ukeharai_ymd',
-                '>=',
-                $start
+                'like',
+                $date_ym . '%'
             )
 
-            ->where(
-                's.ukeharai_ymd',
-                '<=',
-                $end
-            )
 
             // --------------------------------------------------------
             // 只抓有用途名稱的資料
