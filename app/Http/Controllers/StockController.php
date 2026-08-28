@@ -16,25 +16,17 @@ class StockController extends Controller
         // ============================================================
 
         // 如果使用者沒輸入，預設為當月第一天與當月最後一天
-        $dateStartInput = $request->get(
-            'date_start',
-            now()->startOfMonth()->format('Y-m-d')
-        );
-
-        $dateEndInput = $request->get(
-            'date_end',
-            now()->endOfMonth()->format('Y-m-d')
+        $date = $request->get(
+            'date_ym',
+            now()->format('Y-m')
         );
 
         // 接收畫面的過濾條件陣列
         $filters = $request->get('filters', []);
 
         // 轉換為資料庫格式 YYYYMMDD
-        $start = Carbon::parse($dateStartInput)->format('Ymd');
-        $end   = Carbon::parse($dateEndInput)->format('Ymd');
+        $date_ym = Carbon::parse($date_ym)->format('Ym');
 
-        // 年月，例如 202608
-        $yymm = Carbon::parse($dateEndInput)->format('Ym');
 
 
         // ============================================================
@@ -206,15 +198,10 @@ class StockController extends Controller
 
             ->where(
                 's.ukeharai_ymd',
-                '>=',
-                $start
+                'like',
+                $date_ym . '%'
             )
 
-            ->where(
-                's.ukeharai_ymd',
-                '<=',
-                $end
-            )
 
             // ========================================================
             // ★ 按照包裝明細分組

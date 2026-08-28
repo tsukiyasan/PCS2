@@ -9,10 +9,8 @@
         {{-- 頂部搜尋列：依據庫存特性改為「捆包日期」區間查詢 --}}
         <div class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-200 flex flex-wrap items-center gap-4">
             <div class="flex items-center gap-2">
-                <label class="font-semibold text-gray-700">捆包日期：</label>
-                <input type="date" name="date_start" value="{{ $dateStart }}" class="border-gray-300 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                <span class="text-gray-400">~</span>
-                <input type="date" name="date_end" value="{{ $dateEnd }}" class="border-gray-300 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                <label class="font-semibold text-gray-700">庫存年月：</label>
+                <input type="month" name="date_ym" value="{{ $date_ym }}" class="border-gray-300 border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
             </div>
 
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow-md transition font-medium">
