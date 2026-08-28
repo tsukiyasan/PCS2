@@ -16,7 +16,7 @@ class StockController extends Controller
         // ============================================================
 
         // 如果使用者沒輸入，預設為當月第一天與當月最後一天
-        $date_ym = $request->get(
+        $date_ymInput = $request->get(
             'date_ym',
             now()->format('Y-m')
         );
@@ -25,8 +25,8 @@ class StockController extends Controller
         $filters = $request->get('filters', []);
 
         // 轉換為資料庫格式 YYYYMMDD
-        $date_ym = Carbon::parse($date_ym)->format('Ym');
-        $yymm = Carbon::parse($date_ym)->format('Ym');
+        $date_ym = Carbon::parse($date_ymInput)->format('Ym');
+        $yymm = Carbon::parse($date_ymInput)->format('Ym');
 
 
 
@@ -861,7 +861,7 @@ class StockController extends Controller
                 $vendorOptions,
 
             'date_ym' =>
-                $date_ym,
+                $date_ymInput,
 
             'filters' =>
                 $filters,
