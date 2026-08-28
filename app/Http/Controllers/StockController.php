@@ -26,6 +26,7 @@ class StockController extends Controller
 
         // 轉換為資料庫格式 YYYYMMDD
         $date_ym = Carbon::parse($date_ym)->format('Ym');
+        $yymm = Carbon::parse($date_ym)->format('Ym');
 
 
 
