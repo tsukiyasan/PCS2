@@ -16,7 +16,7 @@ class StockController extends Controller
         // ============================================================
 
         // 如果使用者沒輸入，預設為當月第一天與當月最後一天
-        $date = $request->get(
+        $date_ym = $request->get(
             'date_ym',
             now()->format('Y-m')
         );
