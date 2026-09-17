@@ -1,7 +1,7 @@
 @extends('master')
 
-@section('title', '庫存查詢')
-@section('page_name', '庫存查詢')
+@section('title', '成品庫存查詢')
+@section('page_name', '成品庫存查詢')
 
 @section('content')
 <div class="max-w-[100%] mx-auto">
