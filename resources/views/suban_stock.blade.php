@@ -199,145 +199,333 @@
                  表頭
             ==================================================== --}}
             <thead>
-
-                <tr class="bg-[#4f81bd] text-white">
+                <tr class="bg-[#4F81BD] text-white">
 
                     {{-- 設備記號 --}}
-                    <th class="border-r border-[#d9e2f3] px-2 py-2
-                               text-left font-bold whitespace-nowrap
-                               w-[230px]">
-
-                        <div class="flex items-center justify-between">
-
+                    <th class="relative border-r border-white/20 px-2 py-1.5 text-left font-bold whitespace-nowrap">
+                        <div class="flex items-center justify-between gap-2">
                             <span>設備記號</span>
 
-                            <span class="text-white/90 text-xs">
-                                ▼
-                            </span>
-
+                            <button
+                                type="button"
+                                onclick="toggleFilter('equipment')"
+                                class="filter-btn hover:bg-white/20 rounded px-1"
+                            >
+                                <i class="fa-solid fa-filter text-[11px]"></i>
+                            </button>
                         </div>
 
+                        <div
+                            id="filter-equipment"
+                            class="filter-dropdown hidden"
+                        >
+                            <label>
+                                <input type="checkbox" value="ALL" checked>
+                                全部
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="TI2">
+                                TI2
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="TF5">
+                                TF5
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="RTK3">
+                                RTK3
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="RTT2">
+                                RTT2
+                            </label>
+
+                            <button
+                                type="button"
+                                onclick="applyFilter('equipment')"
+                                class="filter-apply"
+                            >
+                                套用
+                            </button>
+                        </div>
                     </th>
 
 
                     {{-- 可寸法L --}}
-                    <th class="border-r border-[#d9e2f3] px-2 py-2
-                               text-right font-bold whitespace-nowrap
-                               w-[120px]">
+                    <th class="relative border-r border-white/20 px-2 py-1.5 text-right font-bold whitespace-nowrap">
 
-                        <div class="flex items-center justify-between">
-
+                        <div class="flex items-center justify-between gap-2">
                             <span>可寸法L</span>
 
-                            <span class="text-white/90 text-xs">
-                                ▼
-                            </span>
-
+                            <button
+                                type="button"
+                                onclick="toggleFilter('l')"
+                                class="filter-btn hover:bg-white/20 rounded px-1"
+                            >
+                                <i class="fa-solid fa-filter text-[11px]"></i>
+                            </button>
                         </div>
 
+                        <div
+                            id="filter-l"
+                            class="filter-dropdown hidden"
+                        >
+                            <label>
+                                <input type="checkbox" value="ALL" checked>
+                                全部
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="1350">
+                                1350
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="2000">
+                                2000
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="2650">
+                                2650
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="1275">
+                                1275
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="1100">
+                                1100
+                            </label>
+
+                            <button
+                                type="button"
+                                onclick="applyFilter('l')"
+                                class="filter-apply"
+                            >
+                                套用
+                            </button>
+                        </div>
                     </th>
 
 
                     {{-- 可寸法W --}}
-                    <th class="border-r border-[#d9e2f3] px-2 py-2
-                               text-right font-bold whitespace-nowrap
-                               w-[120px]">
+                    <th class="relative border-r border-white/20 px-2 py-1.5 text-right font-bold whitespace-nowrap">
 
-                        <div class="flex items-center justify-between">
-
+                        <div class="flex items-center justify-between gap-2">
                             <span>可寸法W</span>
 
-                            <span class="text-white/90 text-xs">
-                                ▼
-                            </span>
-
+                            <button
+                                type="button"
+                                onclick="toggleFilter('w')"
+                                class="filter-btn hover:bg-white/20 rounded px-1"
+                            >
+                                <i class="fa-solid fa-filter text-[11px]"></i>
+                            </button>
                         </div>
 
+                        <div
+                            id="filter-w"
+                            class="filter-dropdown hidden"
+                        >
+                            <label>
+                                <input type="checkbox" value="ALL" checked>
+                                全部
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="2530">
+                                2530
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="2340">
+                                2340
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="2250">
+                                2250
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="1300">
+                                1300
+                            </label>
+
+                            <button
+                                type="button"
+                                onclick="applyFilter('w')"
+                                class="filter-apply"
+                            >
+                                套用
+                            </button>
+                        </div>
                     </th>
 
 
                     {{-- 厚度 --}}
-                    <th class="border-r border-[#d9e2f3] px-2 py-2
-                               text-right font-bold whitespace-nowrap
-                               w-[100px]">
+                    <th class="relative border-r border-white/20 px-2 py-1.5 text-right font-bold whitespace-nowrap">
 
-                        <div class="flex items-center justify-between">
-
+                        <div class="flex items-center justify-between gap-2">
                             <span>厚度</span>
 
-                            <span class="text-white/90 text-xs">
-                                ▼
-                            </span>
-
+                            <button
+                                type="button"
+                                onclick="toggleFilter('thickness')"
+                                class="filter-btn hover:bg-white/20 rounded px-1"
+                            >
+                                <i class="fa-solid fa-filter text-[11px]"></i>
+                            </button>
                         </div>
 
+                        <div
+                            id="filter-thickness"
+                            class="filter-dropdown hidden"
+                        >
+                            <label>
+                                <input type="checkbox" value="ALL" checked>
+                                全部
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="0.4">
+                                0.4
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="0.5">
+                                0.5
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="0.52">
+                                0.52
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="0.7">
+                                0.7
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="0.72">
+                                0.72
+                            </label>
+
+                            <button
+                                type="button"
+                                onclick="applyFilter('thickness')"
+                                class="filter-apply"
+                            >
+                                套用
+                            </button>
+                        </div>
                     </th>
 
 
                     {{-- 欠点區分 --}}
-                    <th class="border-r border-[#d9e2f3] px-2 py-2
-                               text-left font-bold whitespace-nowrap
-                               w-[150px]">
+                    <th class="relative border-r border-white/20 px-2 py-1.5 text-left font-bold whitespace-nowrap">
 
-                        <div class="flex items-center justify-between">
-
+                        <div class="flex items-center justify-between gap-2">
                             <span>欠点區分</span>
 
-                            <span class="text-white/90 text-xs">
-                                ▼
-                            </span>
-
+                            <button
+                                type="button"
+                                onclick="toggleFilter('defect')"
+                                class="filter-btn hover:bg-white/20 rounded px-1"
+                            >
+                                <i class="fa-solid fa-filter text-[11px]"></i>
+                            </button>
                         </div>
 
+                        <div
+                            id="filter-defect"
+                            class="filter-dropdown hidden"
+                        >
+                            <label>
+                                <input type="checkbox" value="ALL" checked>
+                                全部
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="泡沫載">
+                                泡沫載
+                            </label>
+
+                            <label>
+                                <input type="checkbox" value="良品">
+                                良品
+                            </label>
+
+                            <button
+                                type="button"
+                                onclick="applyFilter('defect')"
+                                class="filter-apply"
+                            >
+                                套用
+                            </button>
+                        </div>
                     </th>
 
 
                     {{-- 倉庫 --}}
-                    <th class="border-r border-[#d9e2f3] px-2 py-2
-                               text-left font-bold whitespace-nowrap
-                               w-[170px]">
+                    <th class="relative px-2 py-1.5 text-left font-bold whitespace-nowrap">
 
-                        <div class="flex items-center justify-between">
-
+                        <div class="flex items-center justify-between gap-2">
                             <span>倉庫</span>
 
-                            <span class="text-white/90 text-xs">
-                                ▼
-                            </span>
-
+                            <button
+                                type="button"
+                                onclick="toggleFilter('warehouse')"
+                                class="filter-btn hover:bg-white/20 rounded px-1"
+                            >
+                                <i class="fa-solid fa-filter text-[11px]"></i>
+                            </button>
                         </div>
 
-                    </th>
+                        <div
+                            id="filter-warehouse"
+                            class="filter-dropdown hidden"
+                        >
+                            <label>
+                                <input type="checkbox" value="ALL" checked>
+                                全部
+                            </label>
 
+                            <label>
+                                <input type="checkbox" value="01倉庫">
+                                01倉庫
+                            </label>
 
-                    {{-- 值計數－採用枚數 --}}
-                    <th class="border-r border-[#d9e2f3] px-2 py-2
-                               text-right font-bold whitespace-nowrap
-                               w-[150px]">
+                            <label>
+                                <input type="checkbox" value="科學城-新吉">
+                                科學城-新吉
+                            </label>
 
-                        <div class="leading-tight text-center">
-                            <div>值</div>
-                            <div>計數－採用枚數</div>
+                            <label>
+                                <input type="checkbox" value="台灣第二工場倉庫">
+                                台灣第二工場倉庫
+                            </label>
+
+                            <button
+                                type="button"
+                                onclick="applyFilter('warehouse')"
+                                class="filter-apply"
+                            >
+                                套用
+                            </button>
                         </div>
-
-                    </th>
-
-
-                    {{-- 加總－剩餘數2 --}}
-                    <th class="px-2 py-2
-                               text-right font-bold whitespace-nowrap
-                               w-[150px]">
-
-                        <div class="leading-tight text-center">
-                            <div>加總－剩餘數2</div>
-                        </div>
-
                     </th>
 
                 </tr>
-
             </thead>
-
 
             {{-- ====================================================
                  表身
@@ -597,5 +785,131 @@
     </div>
 
 </div>
+<style>
+    .filter-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+
+        min-width: 180px;
+
+        background: white;
+        color: #374151;
+
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+        padding: 8px;
+    }
+
+    .filter-dropdown label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 5px 6px;
+
+        font-size: 13px;
+        font-weight: normal;
+
+        cursor: pointer;
+
+        white-space: nowrap;
+    }
+
+    .filter-dropdown label:hover {
+        background: #eff6ff;
+    }
+
+    .filter-dropdown input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+    }
+
+    .filter-apply {
+        width: 100%;
+
+        margin-top: 6px;
+        padding: 5px;
+
+        background: #2563eb;
+        color: white;
+
+        border-radius: 4px;
+
+        font-size: 12px;
+    }
+
+    .filter-apply:hover {
+        background: #1d4ed8;
+    }
+
+    .filter-btn {
+        cursor: pointer;
+    }
+</style>
+<script>
+
+function toggleFilter(field) {
+
+    // 先關閉其他篩選
+    document.querySelectorAll('.filter-dropdown').forEach(function (el) {
+
+        if (el.id !== 'filter-' + field) {
+            el.classList.add('hidden');
+        }
+
+    });
+
+    const dropdown = document.getElementById('filter-' + field);
+
+    dropdown.classList.toggle('hidden');
+}
+
+
+// 點頁面其他地方，自動關閉篩選
+document.addEventListener('click', function (event) {
+
+    if (
+        !event.target.closest('.filter-dropdown') &&
+        !event.target.closest('.filter-btn')
+    ) {
+
+        document.querySelectorAll('.filter-dropdown').forEach(function (el) {
+            el.classList.add('hidden');
+        });
+
+    }
+
+});
+
+
+// 套用篩選
+function applyFilter(field) {
+
+    const dropdown = document.getElementById('filter-' + field);
+
+    const checked = Array.from(
+        dropdown.querySelectorAll('input[type="checkbox"]:checked')
+    ).map(function (checkbox) {
+        return checkbox.value;
+    });
+
+    console.log('篩選欄位：', field);
+    console.log('選擇值：', checked);
+
+    /*
+     * 目前先測試用。
+     *
+     * 下一步再把這裡接到真正的假資料過濾。
+     */
+
+    dropdown.classList.add('hidden');
+}
+
+</script>
 
 @endsection
