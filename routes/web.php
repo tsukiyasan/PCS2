@@ -10,3 +10,4 @@ Route::get('/', function () {
 Route::get('/plans', [ProductionPlanController::class, 'index']);
 Route::get('/report', [DailyReportController::class, 'index']);
 Route::get('/stock', [StockController::class, 'index']);
+Route::get('/suban_stock', [SubanStockController::class, 'index']);
