@@ -774,7 +774,7 @@
                 <tr class="border-t-2 border-[#4f81bd] bg-white font-bold">
 
                     <td
-                        colspan="7"
+                        colspan="6"
                         class="px-2 py-1.5 text-left text-gray-800"
                     >
                         總計
