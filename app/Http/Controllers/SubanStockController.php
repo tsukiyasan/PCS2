@@ -703,7 +703,7 @@ class SubanStockController extends Controller
                 ->values();
 
 
-        $stocks = new LengthAwarePaginator(
+        $suban_stock = new LengthAwarePaginator(
             $currentItems,
             $collection->count(),
             $perPage,
@@ -841,14 +841,14 @@ class SubanStockController extends Controller
 
 
         // ============================================================
-        // 14. 回傳 stock.blade.php
+        // 14. 回傳 suban_stock.blade.php
         // ============================================================
 
         return view(
-        'stock',
+        'suban_stock',
         [
-            'stocks' =>
-                $stocks,
+            'suban_stock' =>
+                $suban_stock,
 
             // ★ 新增：全部查詢結果的枚數總和
             'totalMaisu' =>
