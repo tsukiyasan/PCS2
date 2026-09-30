@@ -524,6 +524,22 @@
                         </div>
                     </th>
 
+                    {{-- 計數 - 採板數 --}}
+                    <th class="relative px-2 py-1.5 text-left font-bold whitespace-nowrap">
+
+                        <div class="flex items-center justify-between gap-2">
+                            <span>計數 - 採板數</span>
+                        </div>
+
+                    </th>
+                    {{-- 加總 - 剩餘數2 --}}
+                    <th class="relative px-2 py-1.5 text-left font-bold whitespace-nowrap">
+
+                        <div class="flex items-center justify-between gap-2">
+                            <span>加總 - 剩餘數2</span>
+                        </div>
+                    </th>
+
                 </tr>
             </thead>
 
