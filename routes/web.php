@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductionPlanController;
 use App\Http\Controllers\DailyReportController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\SubanStockController;
 Route::get('/', function () {
     return view('master');
 });
