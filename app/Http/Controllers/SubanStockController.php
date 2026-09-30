@@ -7,7 +7,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class StockController extends Controller
+class SubanStockController extends Controller
 {
     public function index(Request $request)
     {
